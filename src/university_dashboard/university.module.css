@@ -1,0 +1,494 @@
+/* CSS Variables */
+:root {
+  --card-background: #ffffff;
+  --border-color: #e5e7eb;
+  --hover-background: #f9fafb;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --primary-color: #3b82f6;
+}
+
+.dark-mode {
+  --card-background: #1f2937;
+  --border-color: #374151;
+  --hover-background: #374151;
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --primary-color: #60a5fa;
+}
+
+/* App Container */
+.app-container {
+  display: flex;
+  height: 100vh;
+  background-color: #f3f4f6;
+  overflow: hidden;
+}
+
+.dark-mode.app-container {
+  background-color: #111827;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background-color: var(--card-background);
+  border-right: 1px solid var(--border-color);
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-collapsed {
+  width: 70px;
+}
+
+.sidebar-header {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin: 0;
+}
+
+.menu-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 6px;
+  color: var(--text-primary);
+  transition: background-color 0.2s;
+}
+
+.menu-button:hover {
+  background-color: var(--hover-background);
+}
+
+/* Sidebar Menu */
+.sidebar-menu {
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 14px;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.menu-item:hover {
+  background-color: var(--hover-background);
+  color: var(--text-primary);
+}
+
+.menu-item.active {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.menu-icon {
+  flex-shrink: 0;
+}
+
+.item-text {
+  white-space: nowrap;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header */
+.app-header {
+  background-color: var(--card-background);
+  border-bottom: 1px solid var(--border-color);
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Theme Toggle */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background-color: var(--hover-background);
+  transform: translateY(-1px);
+}
+
+/* Profile Container Styles */
+.profile-container {
+  position: relative;
+}
+
+.profile-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.profile-button:hover {
+  background-color: var(--hover-background);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-icon {
+  color: var(--primary-color);
+  flex-shrink: 0;
+}
+
+.profile-name {
+  font-weight: 500;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dropdown-icon {
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.profile-button:hover .dropdown-icon {
+  transform: rotate(180deg);
+}
+
+/* Profile Dropdown */
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: var(--card-background);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  z-index: 1000;
+  animation: slideDown 0.3s ease;
+  overflow: hidden;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-logout-button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-logout-button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: var(--card-background);
+  padding: 32px;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: scaleIn 0.3s ease;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-content h3 {
+  margin: 0 0 12px 0;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modal-content p {
+  margin: 0 0 24px 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.cancel-button,
+.confirm-button {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.cancel-button {
+  background-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+.cancel-button:hover {
+  background-color: var(--hover-background);
+  transform: translateY(-1px);
+}
+
+.confirm-button {
+  background-color: #ef4444;
+  color: white;
+}
+
+.confirm-button:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Success Icon */
+.success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #10b981;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  margin: 0 auto 16px auto;
+  animation: successPop 0.5s ease;
+}
+
+@keyframes successPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Main Content Area */
+.app-main {
+  flex: 1;
+  padding: 24px 32px;
+  overflow-y: auto;
+  background-color: #f3f4f6;
+}
+
+.dark-mode .app-main {
+  background-color: #111827;
+}
+
+/* Dark Mode Adjustments */
+.dark-mode .profile-button {
+  background-color: #1f2937;
+  border-color: #374151;
+  color: #f3f4f6;
+}
+
+.dark-mode .profile-button:hover {
+  background-color: #374151;
+}
+
+.dark-mode .profile-dropdown {
+  background-color: #1f2937;
+  border-color: #374151;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.dark-mode .modal-content {
+  background-color: #1f2937;
+}
+
+.dark-mode .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.dark-mode .cancel-button {
+  background-color: #374151;
+  color: #f3f4f6;
+}
+
+.dark-mode .cancel-button:hover {
+  background-color: #4b5563;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    transform: translateX(-100%);
+  }
+
+  .sidebar:not(.sidebar-collapsed) {
+    transform: translateX(0);
+  }
+
+  .app-header {
+    padding: 16px 20px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .theme-toggle span,
+  .profile-name {
+    display: none;
+  }
+
+  .app-main {
+    padding: 16px 20px;
+  }
+
+  .modal-content {
+    padding: 24px;
+    margin: 0 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-button {
+    padding: 6px 12px;
+  }
+
+  .theme-toggle {
+    padding: 6px 12px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .cancel-button,
+  .confirm-button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,207 @@
+.container {
+  font-family: 'Arial', sans-serif;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.header {
+  background-color: #0056b3;
+  color: white;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.statItem {
+  background-color: white;
+  color: #0056b3;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+.statLabel {
+  margin-right: 0.5rem;
+}
+
+.content {
+  display: flex;
+  padding: 2rem;
+}
+
+.mainContent {
+  flex: 1;
+  background-color: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.initialView {
+  text-align: center;
+  padding: 2rem;
+}
+
+.applyButton {
+  background-color: #0056b3;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.3s;
+}
+
+.applyButton:hover {
+  background-color: #003d82;
+}
+
+.educationLevelSelection {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.levelOptions {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.levelButton {
+  background-color: #0056b3;
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.levelButton:hover {
+  background-color: #003d82;
+}
+
+.formContainer {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formGroup label {
+  font-weight: bold;
+  color: #0056b3;
+}
+
+.formGroup input,
+.formGroup select {
+  padding: 0.7rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.submitButton {
+  background-color: #0056b3;
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background-color 0.3s;
+}
+
+.submitButton:hover {
+  background-color: #003d82;
+}
+
+.submitButton:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.resultsContainer {
+  margin-top: 2rem;
+  border-top: 1px solid #eee;
+  padding-top: 2rem;
+}
+
+.resultsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.clearButton {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.errorMessage {
+  color: #dc3545;
+  background-color: #f8d7da;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.successMessage {
+  color: #28a745;
+  background-color: #d4edda;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.studentDetails {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.detailItem {
+  padding: 0.5rem;
+  background-color: white;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
