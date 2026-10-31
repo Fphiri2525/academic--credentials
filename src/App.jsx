@@ -1,7 +1,7 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+﻿import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet, useLocation } from 'react-router-dom';
 import Login from './Login';
-import Homepage from './Homepage';
+import Homepage from './nche/Homepage';
 import Stock from './Components/Stock';
 import Staff from './Components/Staff';
 import Users from './Components/Users';
@@ -35,7 +35,7 @@ const getAuth = () => {
   }
 };
 
-// ⚠️ Adjust to the role names your backend actually returns
+// âš ï¸ Adjust to the role names your backend actually returns
 const HOMEPAGE_ROLES = ['admin', 'staff'];
 
 const roleHome = (role = '') => {
@@ -207,7 +207,7 @@ function App() {
           path="/unauthorized"
           element={
             <div className="flex flex-col items-center justify-center h-screen text-center p-8">
-              <h1 className="text-red-600 mb-4 text-2xl font-bold">🚫 Unauthorized Access</h1>
+              <h1 className="text-red-600 mb-4 text-2xl font-bold">ðŸš« Unauthorized Access</h1>
               <p className="mb-8 text-slate-500">You don't have permission to access this page.</p>
               <button
                 onClick={() => (window.location.href = roleHome(getAuth().user?.role))}

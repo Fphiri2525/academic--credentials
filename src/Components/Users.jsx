@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { FaUserPlus, FaEye } from "react-icons/fa";
-import { useUserManagement, useConnectionStatus, useAccreditationManagement } from "../hooks/useSmartContract";
+import {
+  useUserManagement,
+  useConnectionStatus,
+  useAccreditationManagement,
+} from "../hooks/useSmartContract";
 import { emailService } from "../services/emailService";
 import styles from "./user.module.css";
 
@@ -30,13 +34,13 @@ const UsersPage = ({ isDark }) => {
     updateUserPassword,
     deleteUser,
     loading,
-    error
+    error,
   } = useUserManagement();
 
   const {
     getAllAccreditedUniversities,
     loading: accreditationLoading,
-    error: accreditationError
+    error: accreditationError,
   } = useAccreditationManagement();
 
   const { isConnected } = useConnectionStatus();
@@ -44,7 +48,7 @@ const UsersPage = ({ isDark }) => {
   const [users, setUsers] = useState([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [transactionStatus, setTransactionStatus] = useState('');
+  const [transactionStatus, setTransactionStatus] = useState("");
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -71,16 +75,16 @@ const UsersPage = ({ isDark }) => {
   const fetchUniversities = async () => {
     try {
       setIsLoadingUniversities(true);
-      console.log('Fetching universities from blockchain...');
+      console.log("Fetching universities from blockchain...");
 
       if (!isConnected) {
-        console.warn('Not connected to blockchain');
+        console.warn("Not connected to blockchain");
         setUniversities([]);
         return;
       }
 
       const universitiesData = await getAllAccreditedUniversities();
-      console.log('Universities fetched:', universitiesData);
+      console.log("Universities fetched:", universitiesData);
 
       if (universitiesData && Array.isArray(universitiesData)) {
         setUniversities(universitiesData);
@@ -88,7 +92,7 @@ const UsersPage = ({ isDark }) => {
         setUniversities([]);
       }
     } catch (error) {
-      console.error('Error fetching universities:', error);
+      console.error("Error fetching universities:", error);
       setUniversities([]);
     } finally {
       setIsLoadingUniversities(false);
@@ -99,29 +103,28 @@ const UsersPage = ({ isDark }) => {
   const fetchUsers = async () => {
     try {
       setIsLoadingUsers(true);
-      console.log('Fetching users from blockchain...');
+      console.log("Fetching users from blockchain...");
 
       if (!isConnected) {
-        console.warn('Not connected to blockchain');
+        console.warn("Not connected to blockchain");
         setUsers([]);
         return;
       }
 
       const usersData = await getAllUsers();
-      console.log('Users fetched:', usersData);
-      
+      console.log("Users fetched:", usersData);
+
       if (usersData && Array.isArray(usersData)) {
         setUsers(usersData);
       } else {
-        console.warn('No users data or invalid format:', usersData);
+        console.warn("No users data or invalid format:", usersData);
         setUsers([]);
       }
-      
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
       setUsers([]);
       setTransactionStatus(`Error fetching users: ${error.message}`);
-      setTimeout(() => setTransactionStatus(''), 5000);
+      setTimeout(() => setTransactionStatus(""), 5000);
     } finally {
       setIsLoadingUsers(false);
     }
@@ -137,49 +140,57 @@ const UsersPage = ({ isDark }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (!formData.name.trim() || !formData.email.trim() || 
-        !formData.contactInfo.trim() || !formData.password.trim() || 
-        !formData.role.trim() || !formData.institution.trim()) {
-      setTransactionStatus('Error: Please fill in all fields');
-      setTimeout(() => setTransactionStatus(''), 5000);
+    if (
+      !formData.name.trim() ||
+      !formData.email.trim() ||
+      !formData.contactInfo.trim() ||
+      !formData.password.trim() ||
+      !formData.role.trim() ||
+      !formData.institution.trim()
+    ) {
+      setTransactionStatus("Error: Please fill in all fields");
+      setTimeout(() => setTransactionStatus(""), 5000);
       return;
     }
 
     try {
       setIsSubmitting(true);
-      setTransactionStatus('Adding user to blockchain...');
-      
+      setTransactionStatus("Adding user to blockchain...");
+
       const result = await registerUser(formData);
-      console.log('User registered successfully:', result);
+      console.log("User registered successfully:", result);
 
       // Send welcome email after successful registration
       let emailSent = false;
       try {
-        setTransactionStatus('Sending welcome email...');
+        setTransactionStatus("Sending welcome email...");
         await emailService.sendWelcomeEmail(formData);
-        console.log('Welcome email sent successfully');
+        console.log("Welcome email sent successfully");
         emailSent = true;
       } catch (emailError) {
-        console.error('Failed to send welcome email:', emailError);
+        console.error("Failed to send welcome email:", emailError);
         // Don't fail the entire registration if email fails
-        console.warn('Email service unavailable - user registration completed without email notification');
+        console.warn(
+          "Email service unavailable - user registration completed without email notification",
+        );
       }
 
       resetForm();
       setIsAddUserFormOpen(false);
       await fetchUsers();
-      
+
       if (emailSent) {
-        setTransactionStatus('User added successfully! Welcome email sent.');
+        setTransactionStatus("User added successfully! Welcome email sent.");
       } else {
-        setTransactionStatus('User added successfully! (Email service unavailable)');
+        setTransactionStatus(
+          "User added successfully! (Email service unavailable)",
+        );
       }
-      setTimeout(() => setTransactionStatus(''), 3000);
-      
+      setTimeout(() => setTransactionStatus(""), 3000);
     } catch (error) {
-      console.error('Error adding user:', error);
+      console.error("Error adding user:", error);
       setTransactionStatus(`Error adding user: ${error.message}`);
-      setTimeout(() => setTransactionStatus(''), 5000);
+      setTimeout(() => setTransactionStatus(""), 5000);
     } finally {
       setIsSubmitting(false);
     }
@@ -190,30 +201,28 @@ const UsersPage = ({ isDark }) => {
     setIsViewModalOpen(true);
   };
 
-
-
   const handleUpdateUser = async (event) => {
     event.preventDefault();
 
     // Check connection status
     if (!isConnected) {
-      setTransactionStatus('Error: Please connect your wallet to update users');
-      setTimeout(() => setTransactionStatus(''), 5000);
+      setTransactionStatus("Error: Please connect your wallet to update users");
+      setTimeout(() => setTransactionStatus(""), 5000);
       return;
     }
 
     // Validate form data
     if (!formData.name.trim() || !formData.email.trim()) {
-      setTransactionStatus('Error: Name and email are required');
-      setTimeout(() => setTransactionStatus(''), 5000);
+      setTransactionStatus("Error: Name and email are required");
+      setTimeout(() => setTransactionStatus(""), 5000);
       return;
     }
 
     // Check if email format is valid
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setTransactionStatus('Error: Please enter a valid email address');
-      setTimeout(() => setTransactionStatus(''), 5000);
+      setTransactionStatus("Error: Please enter a valid email address");
+      setTimeout(() => setTransactionStatus(""), 5000);
       return;
     }
 
@@ -223,66 +232,64 @@ const UsersPage = ({ isDark }) => {
     const hasPasswordChange = formData.password && formData.password.trim();
 
     if (!hasEmailChange && !hasNameChange && !hasPasswordChange) {
-      setTransactionStatus('No changes detected');
-      setTimeout(() => setTransactionStatus(''), 3000);
+      setTransactionStatus("No changes detected");
+      setTimeout(() => setTransactionStatus(""), 3000);
       return;
     }
 
     try {
       setIsSubmitting(true);
-      setTransactionStatus('Updating user on blockchain...');
+      setTransactionStatus("Updating user on blockchain...");
 
       // Update email and name if changed
       if (hasEmailChange || hasNameChange) {
-        console.log('Updating user email/name:', {
+        console.log("Updating user email/name:", {
           currentEmail: selectedUser.email,
           newEmail: formData.email,
-          newName: formData.name
+          newName: formData.name,
         });
 
         await updateUserEmailAndName(
           selectedUser.email,
           formData.email,
-          formData.name
+          formData.name,
         );
 
-        setTransactionStatus('User details updated. Processing password...');
+        setTransactionStatus("User details updated. Processing password...");
       }
 
       // Update password if provided
       if (hasPasswordChange) {
-        console.log('Updating user password for:', formData.email);
+        console.log("Updating user password for:", formData.email);
 
-        await updateUserPassword(
-          formData.email,
-          formData.password
-        );
+        await updateUserPassword(formData.email, formData.password);
       }
 
-      setTransactionStatus('User updated successfully!');
+      setTransactionStatus("User updated successfully!");
       setIsEditModalOpen(false);
       await fetchUsers();
-      setTimeout(() => setTransactionStatus(''), 3000);
-
+      setTimeout(() => setTransactionStatus(""), 3000);
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error("Error updating user:", error);
 
       // Provide more specific error messages
-      let errorMessage = 'Error updating user: ';
-      if (error.message.includes('insufficient funds')) {
-        errorMessage += 'Insufficient funds for transaction fees';
-      } else if (error.message.includes('user rejected')) {
-        errorMessage += 'Transaction was rejected';
-      } else if (error.message.includes('Network error')) {
-        errorMessage += 'Network connection issue. Please check your connection and try again';
-      } else if (error.message.includes('execution reverted')) {
-        errorMessage += 'Transaction failed. The user might not exist or email might be already taken';
+      let errorMessage = "Error updating user: ";
+      if (error.message.includes("insufficient funds")) {
+        errorMessage += "Insufficient funds for transaction fees";
+      } else if (error.message.includes("user rejected")) {
+        errorMessage += "Transaction was rejected";
+      } else if (error.message.includes("Network error")) {
+        errorMessage +=
+          "Network connection issue. Please check your connection and try again";
+      } else if (error.message.includes("execution reverted")) {
+        errorMessage +=
+          "Transaction failed. The user might not exist or email might be already taken";
       } else {
         errorMessage += error.message;
       }
 
       setTransactionStatus(errorMessage);
-      setTimeout(() => setTransactionStatus(''), 8000);
+      setTimeout(() => setTransactionStatus(""), 8000);
     } finally {
       setIsSubmitting(false);
     }
@@ -292,17 +299,16 @@ const UsersPage = ({ isDark }) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
         setIsSubmitting(true);
-        setTransactionStatus('Deleting user from blockchain...');
-        
+        setTransactionStatus("Deleting user from blockchain...");
+
         await deleteUser(userEmail);
-        setTransactionStatus('User deleted successfully!');
+        setTransactionStatus("User deleted successfully!");
         await fetchUsers();
-        setTimeout(() => setTransactionStatus(''), 3000);
-        
+        setTimeout(() => setTransactionStatus(""), 3000);
       } catch (error) {
-        console.error('Error deleting user:', error);
+        console.error("Error deleting user:", error);
         setTransactionStatus(`Error deleting user: ${error.message}`);
-        setTimeout(() => setTransactionStatus(''), 5000);
+        setTimeout(() => setTransactionStatus(""), 5000);
       } finally {
         setIsSubmitting(false);
       }
@@ -310,7 +316,7 @@ const UsersPage = ({ isDark }) => {
   };
 
   return (
-    <div className={`${styles.container} ${isDark ? styles.darkMode : ''}`}>
+    <div className={`${styles.container} ${isDark ? styles.darkMode : ""}`}>
       <div className={styles.header}>
         <h1 className={styles.title}>User Management</h1>
         <button
@@ -324,12 +330,15 @@ const UsersPage = ({ isDark }) => {
 
       {!isConnected && (
         <div className={styles.connectionWarning}>
-          ⚠️ Not connected to blockchain. Please connect your wallet to manage users.
+          ⚠️ Not connected to blockchain. Please connect your wallet to manage
+          users.
         </div>
       )}
 
       {transactionStatus && (
-        <div className={`${styles.transactionStatus} ${transactionStatus.includes('Error') ? styles.error : styles.success}`}>
+        <div
+          className={`${styles.transactionStatus} ${transactionStatus.includes("Error") ? styles.error : styles.success}`}
+        >
           {transactionStatus}
         </div>
       )}
@@ -341,11 +350,7 @@ const UsersPage = ({ isDark }) => {
         </div>
       )}
 
-      {error && (
-        <div className={styles.errorState}>
-          ❌ {error}
-        </div>
-      )}
+      {error && <div className={styles.errorState}>❌ {error}</div>}
 
       {/* Add User Form */}
       {isAddUserFormOpen && (
@@ -433,11 +438,17 @@ const UsersPage = ({ isDark }) => {
                     disabled={isSubmitting || isLoadingUniversities}
                   >
                     <option value="">
-                      {isLoadingUniversities ? 'Loading institutions...' : 'Select Institution'}
+                      {isLoadingUniversities
+                        ? "Loading institutions..."
+                        : "Select Institution"}
                     </option>
                     {/* Default Institutions */}
-                    <option value="NCHE">NCHE (National Council for Higher Education)</option>
-                    <option value="MANEB">MANEB (Malawi National Examinations Board)</option>
+                    <option value="NCHE">
+                      NCHE (National Council for Higher Education)
+                    </option>
+                    <option value="MANEB">
+                      MANEB (Malawi National Examinations Board)
+                    </option>
                     {/* Separator */}
                     {universities.length > 0 && (
                       <option disabled>--- Accredited Universities ---</option>
@@ -450,19 +461,25 @@ const UsersPage = ({ isDark }) => {
                     ))}
                   </select>
                   {!isConnected && (
-                    <small style={{ color: '#dc2626', marginTop: '4px', display: 'block' }}>
+                    <small
+                      style={{
+                        color: "#dc2626",
+                        marginTop: "4px",
+                        display: "block",
+                      }}
+                    >
                       Please connect your wallet to load universities
                     </small>
                   )}
                 </div>
               </div>
               <div className={styles.formActions}>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isSubmitting || !isConnected}
                   className={styles.submitButton}
                 >
-                  {isSubmitting ? 'Adding to Blockchain...' : 'Add User'}
+                  {isSubmitting ? "Adding to Blockchain..." : "Add User"}
                 </button>
                 <button
                   type="button"
@@ -500,7 +517,9 @@ const UsersPage = ({ isDark }) => {
                   <td>{user.name}</td>
                   <td>{user.email}</td>
                   <td>
-                    <span className={`${styles.roleBadge} ${styles[`${user.role}Badge`]}`}>
+                    <span
+                      className={`${styles.roleBadge} ${styles[`${user.role}Badge`]}`}
+                    >
                       {user.role}
                     </span>
                   </td>
@@ -523,7 +542,10 @@ const UsersPage = ({ isDark }) => {
           </table>
         ) : (
           <div className={styles.emptyState}>
-            <p>No users found. {!isConnected && 'Connect your wallet to view users.'}</p>
+            <p>
+              No users found.{" "}
+              {!isConnected && "Connect your wallet to view users."}
+            </p>
           </div>
         )}
       </div>
@@ -534,11 +556,21 @@ const UsersPage = ({ isDark }) => {
           <div className={styles.modal}>
             <h2>User Details</h2>
             <div className={styles.userInfo}>
-              <p><strong>Name:</strong> {selectedUser.name}</p>
-              <p><strong>Email:</strong> {selectedUser.email}</p>
-              <p><strong>Contact:</strong> {selectedUser.contactInfo}</p>
-              <p><strong>Role:</strong> {selectedUser.role}</p>
-              <p><strong>Institution:</strong> {selectedUser.institution}</p>
+              <p>
+                <strong>Name:</strong> {selectedUser.name}
+              </p>
+              <p>
+                <strong>Email:</strong> {selectedUser.email}
+              </p>
+              <p>
+                <strong>Contact:</strong> {selectedUser.contactInfo}
+              </p>
+              <p>
+                <strong>Role:</strong> {selectedUser.role}
+              </p>
+              <p>
+                <strong>Institution:</strong> {selectedUser.institution}
+              </p>
             </div>
             <button
               onClick={() => setIsViewModalOpen(false)}
@@ -549,8 +581,6 @@ const UsersPage = ({ isDark }) => {
           </div>
         </div>
       )}
-
-
     </div>
   );
 };

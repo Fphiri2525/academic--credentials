@@ -1,36 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import styles from './stock.module.css';
-import { useAccreditationManagement, useConnectionStatus } from '../hooks/useSmartContract';
+import React, { useState, useEffect } from "react";
+import styles from "./stock.module.css";
+import {
+  useAccreditationManagement,
+  useConnectionStatus,
+} from "../hooks/useSmartContract";
 
-const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, showInfoNotification }) => {
+const Stockpage = ({
+  isDark,
+  showSuccessNotification,
+  showErrorNotification,
+  showInfoNotification,
+}) => {
   const [activeForm, setActiveForm] = useState(null);
   const [universities, setUniversities] = useState([]);
   const [programs, setPrograms] = useState({});
   const [expandedUniversities, setExpandedUniversities] = useState(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { 
-    getAllAccreditedUniversities, 
-    addAccreditedUniversity, 
+  const {
+    getAllAccreditedUniversities,
+    addAccreditedUniversity,
     addProgram,
     getProgramsByUniversity,
-    loading, 
-    error
+    loading,
+    error,
   } = useAccreditationManagement();
 
   const { isConnected } = useConnectionStatus();
 
   const [universityForm, setUniversityForm] = useState({
-    universityName: '',
-    category: '',
-    contactInfo: '',
+    universityName: "",
+    category: "",
+    contactInfo: "",
   });
 
   const [programForm, setProgramForm] = useState({
-    institutionName: '',
-    programName: '',
-    programType: '',
-    accreditationDate: ''
+    institutionName: "",
+    programName: "",
+    programType: "",
+    accreditationDate: "",
   });
 
   const fetchUniversities = async () => {
@@ -41,7 +49,7 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
       }
 
       const universitiesData = await getAllAccreditedUniversities();
-      
+
       if (universitiesData && Array.isArray(universitiesData)) {
         setUniversities(universitiesData);
       } else {
@@ -58,14 +66,14 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
   const fetchPrograms = async (universityName) => {
     try {
       if (!isConnected) {
-        setPrograms(prev => ({ ...prev, [universityName]: [] }));
+        setPrograms((prev) => ({ ...prev, [universityName]: [] }));
         return;
       }
 
       const programsData = await getProgramsByUniversity(universityName);
-      setPrograms(prev => ({ ...prev, [universityName]: programsData }));
+      setPrograms((prev) => ({ ...prev, [universityName]: programsData }));
     } catch (error) {
-      setPrograms(prev => ({ ...prev, [universityName]: [] }));
+      setPrograms((prev) => ({ ...prev, [universityName]: [] }));
       if (showErrorNotification) {
         showErrorNotification(`Error fetching programs: ${error.message}`);
       }
@@ -74,36 +82,39 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
 
   const handleAddUniversity = async (e) => {
     e.preventDefault();
-    
-    if (!universityForm.universityName.trim() || !universityForm.category.trim() || !universityForm.contactInfo.trim()) {
+
+    if (
+      !universityForm.universityName.trim() ||
+      !universityForm.category.trim() ||
+      !universityForm.contactInfo.trim()
+    ) {
       if (showErrorNotification) {
-        showErrorNotification('Please fill in all fields');
+        showErrorNotification("Please fill in all fields");
       }
       return;
     }
 
     try {
       setIsSubmitting(true);
-      
+
       await addAccreditedUniversity({
         institutionName: universityForm.universityName.trim(),
         category: universityForm.category.trim(),
-        contactInfo: universityForm.contactInfo.trim()
+        contactInfo: universityForm.contactInfo.trim(),
       });
 
       setUniversityForm({
-        universityName: '',
-        category: '',
-        contactInfo: '',
+        universityName: "",
+        category: "",
+        contactInfo: "",
       });
 
       await fetchUniversities();
 
       if (showSuccessNotification) {
-        showSuccessNotification('University added successfully!');
+        showSuccessNotification("University added successfully!");
       }
       setActiveForm(null);
-
     } catch (error) {
       if (showErrorNotification) {
         showErrorNotification(`Error adding university: ${error.message}`);
@@ -115,69 +126,76 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
 
   const handleAddProgram = async (e) => {
     e.preventDefault();
-    
 
-    if (!programForm.institutionName.trim() || !programForm.programName.trim() ||
-        !programForm.programType.trim() || !programForm.accreditationDate.trim()) {
-      console.log('❌ Validation failed - missing fields');
+    if (
+      !programForm.institutionName.trim() ||
+      !programForm.programName.trim() ||
+      !programForm.programType.trim() ||
+      !programForm.accreditationDate.trim()
+    ) {
+      console.log("❌ Validation failed - missing fields");
       if (showErrorNotification) {
-        showErrorNotification('Please fill in all program fields');
+        showErrorNotification("Please fill in all program fields");
       }
       return;
     }
 
     try {
       setIsSubmitting(true);
-    
 
       const programData = {
         institutionName: programForm.institutionName.trim(),
         programName: programForm.programName.trim(),
         programType: programForm.programType.trim(),
-        accreditationDate: programForm.accreditationDate.trim()
+        accreditationDate: programForm.accreditationDate.trim(),
       };
 
-      console.log('📤 Sending program data:', programData);
+      console.log("📤 Sending program data:", programData);
 
       await addProgram(programData);
 
-      console.log('✅ Program added successfully to certificate secure system!');
+      console.log(
+        "✅ Program added successfully to certificate secure system!",
+      );
 
       setProgramForm({
-        institutionName: '',
-        programName: '',
-        programType: '',
-        accreditationDate: ''
+        institutionName: "",
+        programName: "",
+        programType: "",
+        accreditationDate: "",
       });
 
       if (programForm.institutionName) {
-        console.log('🔄 Refreshing programs for:', programForm.institutionName);
+        console.log("🔄 Refreshing programs for:", programForm.institutionName);
         await fetchPrograms(programForm.institutionName);
       }
 
       if (showSuccessNotification) {
-        showSuccessNotification('Program added successfully to certificate secure system!');
+        showSuccessNotification(
+          "Program added successfully to certificate secure system!",
+        );
       }
       setActiveForm(null);
-      console.log('🎉 Add program process completed successfully!');
-
+      console.log("🎉 Add program process completed successfully!");
     } catch (error) {
-      console.error('❌ Error adding program:', error);
-      console.error('❌ Error details:', {
+      console.error("❌ Error adding program:", error);
+      console.error("❌ Error details:", {
         message: error.message,
         stack: error.stack,
-        name: error.name
+        name: error.name,
       });
 
-      let errorMessage = 'Failed to add program. Please try again.';
+      let errorMessage = "Failed to add program. Please try again.";
 
       // Handle specific error types
-      if (error.message.includes('out of gas')) {
-        errorMessage = 'Transaction failed due to insufficient gas. Please try again.';
-      } else if (error.message.includes('User denied transaction')) {
-        errorMessage = 'Transaction was cancelled. Please try again.';
-      } else if (error.message.includes('insufficient funds')) {
-        errorMessage = 'Insufficient funds for gas. Please add more ETH to your wallet.';
+      if (error.message.includes("out of gas")) {
+        errorMessage =
+          "Transaction failed due to insufficient gas. Please try again.";
+      } else if (error.message.includes("User denied transaction")) {
+        errorMessage = "Transaction was cancelled. Please try again.";
+      } else if (error.message.includes("insufficient funds")) {
+        errorMessage =
+          "Insufficient funds for gas. Please add more ETH to your wallet.";
       }
 
       if (showErrorNotification) {
@@ -185,23 +203,23 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
       }
     } finally {
       setIsSubmitting(false);
-      console.log('🏁 Add program process finished');
+      console.log("🏁 Add program process finished");
     }
   };
 
   const handleUniversityFormChange = (e) => {
     const { name, value } = e.target;
-    setUniversityForm(prev => ({
+    setUniversityForm((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleProgramFormChange = (e) => {
     const { name, value } = e.target;
-    setProgramForm(prev => ({
+    setProgramForm((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -219,10 +237,10 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
   };
 
   const handleAddProgramForUniversity = (universityName) => {
-    setActiveForm('program');
-    setProgramForm(prev => ({
+    setActiveForm("program");
+    setProgramForm((prev) => ({
       ...prev,
-      institutionName: universityName
+      institutionName: universityName,
     }));
   };
 
@@ -233,21 +251,20 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
   }, [isConnected]);
 
   return (
-    <div className={`${styles.container} ${isDark ? styles.darkMode : ''}`}>
+    <div className={`${styles.container} ${isDark ? styles.darkMode : ""}`}>
       <div className={styles.contentWrapper}>
         {/* Header */}
         <div className={styles.header}>
-          
           <div className={styles.headerActions}>
             <button
-              onClick={() => setActiveForm('university')}
+              onClick={() => setActiveForm("university")}
               className={styles.addButton}
               disabled={isSubmitting}
             >
               Add University
             </button>
             <button
-              onClick={() => setActiveForm('program')}
+              onClick={() => setActiveForm("program")}
               className={styles.addButton}
               disabled={isSubmitting}
             >
@@ -273,9 +290,13 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
 
         {/* Overlay Forms */}
         {activeForm && (
-          <div className={`${styles.formOverlay} ${isDark ? styles.darkMode : ''}`}>
+          <div
+            className={`${styles.formOverlay} ${isDark ? styles.darkMode : ""}`}
+          >
             <div className={styles.formTitle}>
-              {activeForm === 'university' ? 'Add New University' : 'Add New Program'}
+              {activeForm === "university"
+                ? "Add New University"
+                : "Add New Program"}
               <button
                 onClick={() => setActiveForm(null)}
                 className={styles.closeFormButton}
@@ -284,9 +305,12 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
                 ×
               </button>
             </div>
-            
-            {activeForm === 'university' ? (
-              <form onSubmit={handleAddUniversity} className={styles.universityForm}>
+
+            {activeForm === "university" ? (
+              <form
+                onSubmit={handleAddUniversity}
+                className={styles.universityForm}
+              >
                 <div className={styles.formGroup}>
                   <label>University Name *</label>
                   <input
@@ -311,7 +335,9 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
                   >
                     <option value="">Select category</option>
                     <option value="Public University">Public University</option>
-                    <option value="Private University">Private University</option>
+                    <option value="Private University">
+                      Private University
+                    </option>
                     <option value="College">College</option>
                     <option value="Institute">Institute</option>
                   </select>
@@ -331,12 +357,14 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
                 </div>
 
                 <div className={styles.formActions}>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={isSubmitting || !isConnected}
                     className={styles.submitButton}
                   >
-                    {isSubmitting ? 'Adding to Blockchain...' : 'Add University'}
+                    {isSubmitting
+                      ? "Adding to Blockchain..."
+                      : "Add University"}
                   </button>
                   <button
                     type="button"
@@ -361,8 +389,12 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
                   >
                     <option value="">Select Institution</option>
                     {/* Default Institutions */}
-                    <option value="NCHE">NCHE (National Council for Higher Education)</option>
-                    <option value="MANEB">MANEB (Malawi National Examinations Board)</option>
+                    <option value="NCHE">
+                      NCHE (National Council for Higher Education)
+                    </option>
+                    <option value="MANEB">
+                      MANEB (Malawi National Examinations Board)
+                    </option>
                     {/* Separator */}
                     {universities.length > 0 && (
                       <option disabled>--- Accredited Universities ---</option>
@@ -375,7 +407,13 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
                     ))}
                   </select>
                   {!isConnected && (
-                    <small style={{ color: '#dc2626', marginTop: '4px', display: 'block' }}>
+                    <small
+                      style={{
+                        color: "#dc2626",
+                        marginTop: "4px",
+                        display: "block",
+                      }}
+                    >
                       Please connect your wallet to load universities
                     </small>
                   )}
@@ -424,12 +462,12 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
                   />
                 </div>
                 <div className={styles.formActions}>
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={isSubmitting || !isConnected}
                     className={styles.submitButton}
                   >
-                    {isSubmitting ? 'Adding to Blockchain...' : 'Add Program'}
+                    {isSubmitting ? "Adding to Blockchain..." : "Add Program"}
                   </button>
                   <button
                     type="button"
@@ -446,7 +484,9 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
         )}
 
         {/* Table Section */}
-        <div className={`${styles.tableSection} ${activeForm ? styles.formActive : ''}`}>
+        <div
+          className={`${styles.tableSection} ${activeForm ? styles.formActive : ""}`}
+        >
           <div className={styles.tableHeader}>
             <h2>Accredited Universities</h2>
             <button
@@ -459,7 +499,9 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
           </div>
 
           {universities.length > 0 ? (
-            <table className={`${styles.dataTable} ${isDark ? styles.darkMode : ''}`}>
+            <table
+              className={`${styles.dataTable} ${isDark ? styles.darkMode : ""}`}
+            >
               <thead>
                 <tr>
                   <th>Name</th>
@@ -471,7 +513,11 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
               <tbody>
                 {universities.map((university, index) => (
                   <React.Fragment key={index}>
-                    <tr className={index % 2 === 0 ? styles.evenRow : styles.oddRow}>
+                    <tr
+                      className={
+                        index % 2 === 0 ? styles.evenRow : styles.oddRow
+                      }
+                    >
                       <td>{university.name}</td>
                       <td>{university.category}</td>
                       <td>{university.contactInfo}</td>
@@ -480,10 +526,14 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
                           onClick={() => handleViewPrograms(university.name)}
                           className={styles.viewButton}
                         >
-                          {expandedUniversities.has(university.name) ? 'Close Programs' : 'View Programs'}
+                          {expandedUniversities.has(university.name)
+                            ? "Close Programs"
+                            : "View Programs"}
                         </button>
                         <button
-                          onClick={() => handleAddProgramForUniversity(university.name)}
+                          onClick={() =>
+                            handleAddProgramForUniversity(university.name)
+                          }
                           className={styles.addProgramButton}
                         >
                           Add Program
@@ -493,21 +543,26 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
                     {expandedUniversities.has(university.name) && (
                       <tr>
                         <td colSpan="4" className={styles.programsRow}>
-                          <div className={`${styles.programsSection} ${isDark ? styles.darkMode : ''}`}>
+                          <div
+                            className={`${styles.programsSection} ${isDark ? styles.darkMode : ""}`}
+                          >
                             <div className={styles.programsHeader}>
                               <h3>Programs for {university.name}</h3>
-                              <button 
-                                onClick={() => setExpandedUniversities(prev => {
-                                  const newSet = new Set(prev);
-                                  newSet.delete(university.name);
-                                  return newSet;
-                                })}
+                              <button
+                                onClick={() =>
+                                  setExpandedUniversities((prev) => {
+                                    const newSet = new Set(prev);
+                                    newSet.delete(university.name);
+                                    return newSet;
+                                  })
+                                }
                                 className={styles.closeButton}
                               >
                                 Close
                               </button>
                             </div>
-                            {programs[university.name] && programs[university.name].length > 0 ? (
+                            {programs[university.name] &&
+                            programs[university.name].length > 0 ? (
                               <table className={styles.programsTable}>
                                 <thead>
                                   <tr>
@@ -517,17 +572,28 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {programs[university.name].map((program, programIndex) => (
-                                    <tr key={programIndex} className={programIndex % 2 === 0 ? styles.evenRow : styles.oddRow}>
-                                      <td>{program.name}</td>
-                                      <td>{program.programType}</td>
-                                      <td>{program.accreditationDate}</td>
-                                    </tr>
-                                  ))}
+                                  {programs[university.name].map(
+                                    (program, programIndex) => (
+                                      <tr
+                                        key={programIndex}
+                                        className={
+                                          programIndex % 2 === 0
+                                            ? styles.evenRow
+                                            : styles.oddRow
+                                        }
+                                      >
+                                        <td>{program.name}</td>
+                                        <td>{program.programType}</td>
+                                        <td>{program.accreditationDate}</td>
+                                      </tr>
+                                    ),
+                                  )}
                                 </tbody>
                               </table>
                             ) : (
-                              <p className={styles.noPrograms}>No programs found for {university.name}</p>
+                              <p className={styles.noPrograms}>
+                                No programs found for {university.name}
+                              </p>
                             )}
                           </div>
                         </td>
@@ -538,8 +604,13 @@ const Stockpage = ({ isDark, showSuccessNotification, showErrorNotification, sho
               </tbody>
             </table>
           ) : (
-            <div className={`${styles.emptyState} ${isDark ? styles.darkMode : ''}`}>
-              <p>No universities found. {!isConnected && 'Connect your wallet to view universities.'}</p>
+            <div
+              className={`${styles.emptyState} ${isDark ? styles.darkMode : ""}`}
+            >
+              <p>
+                No universities found.{" "}
+                {!isConnected && "Connect your wallet to view universities."}
+              </p>
             </div>
           )}
         </div>
