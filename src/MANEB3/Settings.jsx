@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { User, Mail, Building, Phone, Save, Lock } from 'lucide-react';
+import {
+  User, Mail, Building, Phone, Save, Lock,
+  AlertCircle, CheckCircle2, Info, RefreshCw,
+} from 'lucide-react';
 import { useTheme } from './maneb';
 import { useUserManagement, useConnectionStatus } from '../hooks/useSmartContract';
 import styles from './settings.module.css';
@@ -10,16 +13,19 @@ const Settings = () => {
     name: '',
     email: '',
     contactInfo: '',
-    role: 'maneb'
+    role: 'maneb',
   });
   const [passwordData, setPasswordData] = useState({
     newPassword: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [passwordMessage, setPasswordMessage] = useState({ type: '', text: '' });
+  const [passwordMessage, setPasswordMessage] = useState({
+    type: '',
+    text: '',
+  });
 
   const {
     getUserDetailsGivenEmail,
@@ -27,12 +33,11 @@ const Settings = () => {
     updateUserPassword,
     changeUserPasswordByEmail,
     loading,
-    error
+    error,
   } = useUserManagement();
 
   const { isConnected } = useConnectionStatus();
 
-  // Load user data from localStorage or fetch from blockchain
   useEffect(() => {
     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
     if (userData.email) {
@@ -40,16 +45,13 @@ const Settings = () => {
         name: userData.name || '',
         email: userData.email || '',
         contactInfo: userData.contactInfo || '',
-        role: userData.role || 'maneb'
+        role: userData.role || 'maneb',
       });
     }
   }, []);
 
   const handleInputChange = (field, value) => {
-    setProfileData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setProfileData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleUpdateProfile = async (e) => {
@@ -61,46 +63,48 @@ const Settings = () => {
     }
 
     if (!isConnected) {
-      setMessage({ type: 'error', text: 'Please connect your wallet to update profile' });
+      setMessage({
+        type: 'error',
+        text: 'Please connect your wallet to update profile',
+      });
       return;
     }
 
     setIsUpdating(true);
     try {
-      const currentUserData = JSON.parse(localStorage.getItem('userData') || '{}');
+      const currentUserData = JSON.parse(
+        localStorage.getItem('userData') || '{}',
+      );
       const currentEmail = currentUserData.email;
 
       if (!currentEmail) {
-        setMessage({ type: 'error', text: 'Current user email not found. Please login again.' });
+        setMessage({
+          type: 'error',
+          text: 'Current user email not found. Please login again.',
+        });
         return;
       }
 
-      // Update user email and name using smart contract
       await updateUserEmailAndName(
-        currentEmail,           // current email
-        profileData.email,      // new email
-        profileData.name        // new name
+        currentEmail,
+        profileData.email,
+        profileData.name,
       );
 
-      // Update localStorage with new data
       const updatedUserData = {
         ...currentUserData,
         name: profileData.name,
         email: profileData.email,
-        contactInfo: profileData.contactInfo
+        contactInfo: profileData.contactInfo,
       };
       localStorage.setItem('userData', JSON.stringify(updatedUserData));
 
-      setMessage({
-        type: 'success',
-        text: 'Profile updated successfully!'
-      });
-
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
     } catch (error) {
       console.error('Error updating profile:', error);
       setMessage({
         type: 'error',
-        text: `Failed to update profile: ${error.message || 'Unknown error'}`
+        text: `Failed to update profile: ${error.message || 'Unknown error'}`,
       });
     } finally {
       setIsUpdating(false);
@@ -121,39 +125,40 @@ const Settings = () => {
     }
 
     if (passwordData.newPassword.length < 6) {
-      setPasswordMessage({ type: 'error', text: 'Password must be at least 6 characters long' });
+      setPasswordMessage({
+        type: 'error',
+        text: 'Password must be at least 6 characters long',
+      });
       return;
     }
 
     if (!isConnected) {
-      setPasswordMessage({ type: 'error', text: 'Please connect your wallet to update password' });
+      setPasswordMessage({
+        type: 'error',
+        text: 'Please connect your wallet to update password',
+      });
       return;
     }
 
     setIsUpdatingPassword(true);
     setPasswordMessage({ type: '', text: '' });
-    
+
     try {
-      console.log('🔐 Starting password change process for email:', profileData.email);
-      
-      // Use the changeUserPasswordByEmail blockchain function
       const result = await changeUserPasswordByEmail(
         profileData.email,
-        passwordData.newPassword
+        passwordData.newPassword,
       );
 
-      console.log('✅ Password changed successfully:', result);
-      setPasswordMessage({ 
-        type: 'success', 
-        text: 'Password updated successfully using blockchain!' 
+      setPasswordMessage({
+        type: 'success',
+        text: 'Password updated successfully using blockchain!',
       });
       setPasswordData({ newPassword: '', confirmPassword: '' });
-
     } catch (error) {
-      console.error('❌ Error changing password:', error);
+      console.error('Error changing password:', error);
       setPasswordMessage({
         type: 'error',
-        text: `Failed to change password: ${error.message || 'Unknown error'}`
+        text: `Failed to change password: ${error.message || 'Unknown error'}`,
       });
     } finally {
       setIsUpdatingPassword(false);
@@ -161,13 +166,9 @@ const Settings = () => {
   };
 
   const handlePasswordInputChange = (field, value) => {
-    setPasswordData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setPasswordData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Clear messages after 5 seconds
   useEffect(() => {
     if (message.text) {
       const timer = setTimeout(() => {
@@ -186,171 +187,253 @@ const Settings = () => {
     }
   }, [passwordMessage]);
 
+  /* ============================================================
+     RENDER
+     ============================================================ */
   return (
-    <div className={`${styles.contentCard} ${darkMode ? styles.darkTheme : styles.lightTheme}`}>
-      <h2 className={styles.pageTitle}>User Profile Settings</h2>
+    <div className={styles.container}>
+      <div className={styles.intro}>
+        <div>
+          <h1 className={styles.title}>Settings</h1>
+          <p className={styles.subtitle}>
+            Manage your profile, security, and system preferences.
+          </p>
+        </div>
+      </div>
 
-      {/* Message Display */}
       {message.text && (
-        <div className={`${styles.message} ${message.type === 'error' ? styles.errorMessage : styles.successMessage}`}>
-          {message.text}
+        <div
+          className={`${styles.alert} ${
+            message.type === 'error' ? styles.alertDanger : styles.alertSuccess
+          }`}
+        >
+          {message.type === 'error' ? (
+            <AlertCircle size={16} />
+          ) : (
+            <CheckCircle2 size={16} />
+          )}
+          <span>{message.text}</span>
         </div>
       )}
 
-      {/* Password Message Display */}
       {passwordMessage.text && (
-        <div className={`${styles.message} ${passwordMessage.type === 'error' ? styles.errorMessage : styles.successMessage}`}>
-          {passwordMessage.text}
+        <div
+          className={`${styles.alert} ${
+            passwordMessage.type === 'error'
+              ? styles.alertDanger
+              : styles.alertSuccess
+          }`}
+        >
+          {passwordMessage.type === 'error' ? (
+            <AlertCircle size={16} />
+          ) : (
+            <CheckCircle2 size={16} />
+          )}
+          <span>{passwordMessage.text}</span>
         </div>
       )}
 
-      <div className={styles.settingsContent}>
-        {/* Profile Information Section */}
-        <div className={styles.settingsSection}>
-          <h3>Profile Information</h3>
-          <form onSubmit={handleUpdateProfile} className={styles.settingsForm}>
+      {!isConnected && (
+        <div className={`${styles.alert} ${styles.alertWarning}`}>
+          <Info size={16} />
+          <span>
+            Please connect your wallet to update profile information.
+          </span>
+        </div>
+      )}
+
+      {/* Profile Information */}
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h2 className={styles.cardTitle}>Profile Information</h2>
+            <p className={styles.cardSub}>
+              Basic details associated with your MANEB account.
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handleUpdateProfile} className={styles.form}>
+          <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label>
-                <User size={16} style={{ marginRight: '8px' }} />
+              <label className={styles.label}>
+                <User size={14} />
                 Full Name
               </label>
               <input
                 type="text"
                 value={profileData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
-                className={styles.formInput}
+                className={styles.input}
                 placeholder="Enter your full name"
                 required
               />
             </div>
 
             <div className={styles.formGroup}>
-              <label>
-                <Mail size={16} style={{ marginRight: '8px' }} />
+              <label className={styles.label}>
+                <Mail size={14} />
                 Email Address
               </label>
               <input
                 type="email"
                 value={profileData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className={styles.formInput}
+                className={styles.input}
                 placeholder="Enter your email address"
                 required
               />
             </div>
 
             <div className={styles.formGroup}>
-              <label>
-                <Phone size={16} style={{ marginRight: '8px' }} />
+              <label className={styles.label}>
+                <Phone size={14} />
                 Contact Information
               </label>
               <input
                 type="text"
                 value={profileData.contactInfo}
-                onChange={(e) => handleInputChange('contactInfo', e.target.value)}
-                className={styles.formInput}
-                placeholder="Enter your contact information"
+                onChange={(e) =>
+                  handleInputChange('contactInfo', e.target.value)
+                }
+                className={styles.input}
+                placeholder="Phone, email, or address"
               />
             </div>
 
             <div className={styles.formGroup}>
-              <label>
-                <Building size={16} style={{ marginRight: '8px' }} />
+              <label className={styles.label}>
+                <Building size={14} />
                 Role
               </label>
               <input
                 type="text"
                 value={profileData.role}
-                className={`${styles.formInput} ${styles.readOnly}`}
+                className={`${styles.input} ${styles.readOnly}`}
                 readOnly
-                style={{ backgroundColor: '#f5f5f5', cursor: 'not-allowed' }}
               />
             </div>
+          </div>
 
-            <div className={styles.formActions}>
-              <button
-                type="submit"
-                disabled={isUpdating || !isConnected}
-                className={styles.btnPrimary}
-              >
-                <Save size={16} style={{ marginRight: '8px' }} />
-                {isUpdating ? 'Updating...' : 'Update Profile'}
-              </button>
-            </div>
-          </form>
+          <div className={styles.formActions}>
+            <button
+              type="submit"
+              disabled={isUpdating || !isConnected}
+              className={styles.btnPrimary}
+            >
+              {isUpdating ? (
+                <>
+                  <RefreshCw size={14} /> Updating…
+                </>
+              ) : (
+                <>
+                  <Save size={14} /> Update Profile
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Password */}
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h2 className={styles.cardTitle}>Change Password</h2>
+            <p className={styles.cardSub}>
+              Passwords are stored securely on the blockchain.
+            </p>
+          </div>
         </div>
 
-        {/* Password Change Section */}
-        <div className={styles.settingsSection}>
-          <h3>Change Password</h3>
-          <form onSubmit={handlePasswordUpdate} className={styles.settingsForm}>
+        <form onSubmit={handlePasswordUpdate} className={styles.form}>
+          <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label>
-                <Lock size={16} style={{ marginRight: '8px' }} />
+              <label className={styles.label}>
+                <Lock size={14} />
                 New Password
               </label>
               <input
                 type="password"
                 value={passwordData.newPassword}
-                onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
-                className={styles.formInput}
-                placeholder="Enter new password"
+                onChange={(e) =>
+                  handlePasswordInputChange('newPassword', e.target.value)
+                }
+                className={styles.input}
+                placeholder="At least 6 characters"
                 minLength="6"
                 required
               />
             </div>
 
             <div className={styles.formGroup}>
-              <label>
-                <Lock size={16} style={{ marginRight: '8px' }} />
+              <label className={styles.label}>
+                <Lock size={14} />
                 Confirm Password
               </label>
               <input
                 type="password"
                 value={passwordData.confirmPassword}
-                onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
-                className={styles.formInput}
+                onChange={(e) =>
+                  handlePasswordInputChange('confirmPassword', e.target.value)
+                }
+                className={styles.input}
                 placeholder="Confirm new password"
                 minLength="6"
                 required
               />
             </div>
+          </div>
 
-            <div className={styles.formActions}>
-              <button
-                type="submit"
-                disabled={isUpdatingPassword || !isConnected}
-                className={styles.btnPrimary}
-              >
-                <Lock size={16} style={{ marginRight: '8px' }} />
-                {isUpdatingPassword ? 'Updating...' : 'Update Password'}
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className={styles.formActions}>
+            <button
+              type="submit"
+              disabled={isUpdatingPassword || !isConnected}
+              className={styles.btnPrimary}
+            >
+              {isUpdatingPassword ? (
+                <>
+                  <RefreshCw size={14} /> Updating…
+                </>
+              ) : (
+                <>
+                  <Lock size={14} /> Update Password
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
 
-        {/* System Preferences Section */}
-        <div className={styles.settingsSection}>
-          <h3>System Preferences</h3>
-          <div className={styles.settingsOptions}>
-            <div className={styles.settingsOption}>
-              <span>Dark Mode</span>
-              <div className={styles.toggle}>
-                <input type="checkbox" checked={darkMode} onChange={toggleTheme} />
-                <span className={styles.toggleSlider}></span>
-              </div>
-            </div>
+      {/* Preferences */}
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h2 className={styles.cardTitle}>System Preferences</h2>
+            <p className={styles.cardSub}>
+              Personalize your MANEB portal experience.
+            </p>
           </div>
         </div>
 
-        {/* Connection Status */}
-        {!isConnected && (
-          <div className={styles.settingsSection}>
-            <div className={styles.warningMessage}>
-              ⚠️ Please connect your wallet to update profile information
-            </div>
+        <div className={styles.toggleRow}>
+          <div className={styles.toggleLabel}>
+            <span className={styles.toggleTitle}>Dark Mode</span>
+            <span className={styles.toggleHint}>
+              Switch to a darker color scheme across the portal.
+            </span>
           </div>
-        )}
+          <button
+            type="button"
+            className={`${styles.toggle} ${
+              darkMode ? styles.toggleOn : ''
+            }`}
+            onClick={toggleTheme}
+            aria-pressed={darkMode}
+          >
+            <span className={styles.toggleDot} />
+          </button>
+        </div>
       </div>
     </div>
   );

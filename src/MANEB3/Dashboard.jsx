@@ -5,10 +5,11 @@ import {
   BarChart3,
   Users,
   School,
-  Calendar,
   QrCode,
-  GraduationCap,
   FileCheck,
+  Activity,
+  ArrowRight,
+  TrendingUp,
 } from "lucide-react";
 import { useManebContract } from "../hooks/useSmartContract";
 import styles from "./dashboard.module.css";
@@ -23,7 +24,6 @@ const Dashboard = () => {
     getTotalSecondarySchools,
   } = useManebContract();
 
-  // State for Form Four data
   const [formFourStats, setFormFourStats] = useState({
     totalStudents: 0,
     totalSchools: 0,
@@ -34,33 +34,25 @@ const Dashboard = () => {
   const [recentGraduates, setRecentGraduates] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // State for analytics data from blockchain
   const [analyticsData, setAnalyticsData] = useState({
     totalCertificates: 0,
     verifiedCertificates: 0,
     notVerifiedCertificates: 0,
     institutions: 0,
-    totalGraduates: 0,
-    totalStudents: 0,
     totalQRCodes: 0,
     formFourStudents: 0,
     digitalCertificatesGenerated: 0,
     digitalCertificatesNotGenerated: 0,
-    monthlyGrowth: 0,
-    verificationRate: 100,
   });
 
-  // Load Form Four data on component mount
   useEffect(() => {
     loadFormFourData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadFormFourData = async () => {
     try {
       setLoading(true);
-      console.log("📊 Loading dashboard data from blockchain...");
-
-      // Load all data in parallel using correct ABI functions
       const [
         formFourStats,
         allGraduates,
@@ -75,7 +67,6 @@ const Dashboard = () => {
         getTotalSecondarySchools(),
       ]);
 
-      // Update Form Four statistics
       setFormFourStats(
         formFourStats || {
           totalStudents: 0,
@@ -86,19 +77,16 @@ const Dashboard = () => {
         },
       );
 
-      // Get the 5 most recent graduates
       const recent = (allGraduates || []).slice(-5).reverse();
       setRecentGraduates(recent);
 
-      // Calculate digital certificates generated vs not generated
       const totalFormFourStudents = formFourStats?.totalStudents || 0;
-      const digitalGenerated = totalQRCodes || 0; // Assuming QR codes represent digital certificates
+      const digitalGenerated = totalQRCodes || 0;
       const digitalNotGenerated = Math.max(
         0,
         totalFormFourStudents - digitalGenerated,
       );
 
-      // Update analytics data with real blockchain values
       setAnalyticsData({
         totalCertificates: totalVerificationCertificates || 0,
         verifiedCertificates: totalVerificationCertificates || 0,
@@ -108,45 +96,14 @@ const Dashboard = () => {
         formFourStudents: totalFormFourStudents,
         digitalCertificatesGenerated: digitalGenerated,
         digitalCertificatesNotGenerated: digitalNotGenerated,
-        monthlyGrowth: 0,
-        verificationRate: 100,
-      });
-
-      console.log("✅ Dashboard data loaded:", {
-        formFourStats,
-        totalVerificationCertificates,
-        totalQRCodes,
-        totalSchools,
-        recentCount: recent.length,
       });
     } catch (error) {
-      console.error("❌ Error loading dashboard data:", error);
+      console.error("Error loading dashboard data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Calculate percentages from current analytics data
-
-  // Calculate percentages
-  const verifiedPercentage =
-    analyticsData.totalCertificates > 0
-      ? (
-          (analyticsData.verifiedCertificates /
-            analyticsData.totalCertificates) *
-          100
-        ).toFixed(1)
-      : "0.0";
-  const notVerifiedPercentage =
-    analyticsData.totalCertificates > 0
-      ? (
-          (analyticsData.notVerifiedCertificates /
-            analyticsData.totalCertificates) *
-          100
-        ).toFixed(1)
-      : "0.0";
-
-  // Recent activities - populated from Form Four data
   const recentActivities = recentGraduates.map((graduate, index) => ({
     id: index + 1,
     type: "Form Four Added",
@@ -155,32 +112,40 @@ const Dashboard = () => {
     status: "verified",
   }));
 
-  // Dashboard Card Component (same as homepage)
+  const totalForChart =
+    analyticsData.digitalCertificatesGenerated +
+    analyticsData.digitalCertificatesNotGenerated;
+
+  const generatedPercent =
+    totalForChart > 0
+      ? Math.round(
+          (analyticsData.digitalCertificatesGenerated / totalForChart) * 100,
+        )
+      : 0;
+
   const DashboardCard = ({
     icon,
     title,
     value,
-    isDark,
-    onClick,
     isClickable = false,
+    onClick,
   }) => (
     <div
-      className={`${styles.dashboardCard} ${isDark ? styles.darkCard : ""} ${isClickable ? styles.clickableCard : ""}`}
+      className={`${styles.dashboardCard} ${isClickable ? styles.clickableCard : ""}`}
       onClick={onClick}
-      style={{ cursor: isClickable ? "pointer" : "default" }}
+      role={isClickable ? "button" : undefined}
+      tabIndex={isClickable ? 0 : undefined}
     >
       <div className={styles.dashboardCardContent}>
         <div className={styles.cardIcon}>{icon}</div>
         <div className={styles.cardInfo}>
-          <h4
-            className={`${styles.dashboardTitle} ${isDark ? styles.darkText : ""}`}
-          >
-            {title}
-          </h4>
-          <p
-            className={`${styles.dashboardValue} ${isDark ? styles.darkText : ""}`}
-          >
-            {value}
+          <h4 className={styles.dashboardTitle}>{title}</h4>
+          <p className={styles.dashboardValue}>
+            {loading ? (
+              <span className={styles.skeletonText}>Loading…</span>
+            ) : (
+              value
+            )}
           </p>
         </div>
       </div>
@@ -188,64 +153,97 @@ const Dashboard = () => {
   );
 
   return (
-    <div
-      className={`${styles.dashboardContainer} ${darkMode ? styles.darkTheme : styles.lightTheme}`}
-    >
+    <div className={styles.dashboardContainer}>
       <header className={styles.dashboardHeader}>
-        <h1 className={styles.dashboardTitle}>MANEB Dashboard</h1>
+        <h1 className={styles.mainTitle}>Dashboard</h1>
         <p className={styles.dashboardSubtitle}>
-          Certificate verification analytics and system overview
+          Certificate verification analytics and system overview.
         </p>
       </header>
 
-      {/* Dashboard Cards Grid - Same as Homepage */}
+      {/* ============ Top Stat Cards ============ */}
       <div className={styles.dashboardGrid}>
         <DashboardCard
-          icon={<Users size={24} color="#2563eb" />}
+          icon={<Users size={22} color="#2563eb" />}
           title="Total Students"
-          value={loading ? "Loading..." : formFourStats.totalStudents}
-          isDark={darkMode}
-          isClickable={true}
+          value={formFourStats.totalStudents.toLocaleString()}
+          isClickable
           onClick={() => (window.location.href = "/maneb/upload")}
         />
         <DashboardCard
-          icon={<School size={24} color="#f59e0b" />}
+          icon={<School size={22} color="#f59e0b" />}
           title="Total Schools"
-          value={loading ? "Loading..." : formFourStats.totalSchools}
-          isDark={darkMode}
+          value={formFourStats.totalSchools.toLocaleString()}
         />
         <DashboardCard
-          icon={<CheckCircle size={24} color="#10b981" />}
+          icon={<CheckCircle size={22} color="#10b981" />}
           title="Digital Certificates"
-          value={
-            loading ? "Loading..." : analyticsData.digitalCertificatesGenerated
-          }
-          isDark={darkMode}
+          value={analyticsData.digitalCertificatesGenerated.toLocaleString()}
         />
         <DashboardCard
-          icon={<QrCode size={24} color="#8b5cf6" />}
+          icon={<QrCode size={22} color="#8b5cf6" />}
           title="QR Codes Generated"
-          value={loading ? "Loading..." : analyticsData.totalQRCodes}
-          isDark={darkMode}
+          value={analyticsData.totalQRCodes.toLocaleString()}
         />
       </div>
 
-      {/* Digital Certificates Analytics Section */}
-      <div className={styles.analyticsSection}>
-        <div className={`${styles.card} ${styles.analyticsCard}`}>
+      {/* ============ Analytics + Activity (side by side) ============ */}
+      <div className={styles.grid2}>
+        {/* ---- Analytics Card ---- */}
+        <div className={styles.card}>
           <div className={styles.cardHeader}>
-            <h3 className={styles.cardTitle}>Digital Certificates Analytics</h3>
+            <div>
+              <h3 className={styles.cardTitle}>Certificate Analytics</h3>
+              <p className={styles.cardSub}>
+                Breakdown of generated vs pending certificates.
+              </p>
+            </div>
           </div>
-          <div className={styles.cardContent}>
-            <div className={styles.analyticsGrid}>
-              <div className={styles.analyticsItem}>
-                <div className={styles.analyticsIcon}>
-                  <CheckCircle className={styles.iconDigitalGenerated} />
+
+          <div className={styles.analyticsGrid}>
+            {/* Pie Chart Block */}
+            <div className={styles.pieChartContainer}>
+              <div className={styles.pieChart}>
+                <div
+                  className={styles.chartSegment}
+                  style={{
+                    background: `conic-gradient(
+                      #10b981 0deg ${generatedPercent * 3.6}deg,
+                      #f59e0b ${generatedPercent * 3.6}deg 360deg
+                    )`,
+                  }}
+                >
+                  <div className={styles.chartCenter}>
+                    <span className={styles.chartPercentage}>
+                      {generatedPercent}%
+                    </span>
+                    <span className={styles.chartLabel}>Generated</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.chartLegend}>
+                <div className={styles.legendItem}>
+                  <span className={styles.legendColorGenerated} />
+                  <span>Generated</span>
+                </div>
+                <div className={styles.legendItem}>
+                  <span className={styles.legendColorNotGenerated} />
+                  <span>Not Generated</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Mini Stat Blocks */}
+            <div className={styles.analyticsStats}>
+              <div className={`${styles.analyticsItem} ${styles.analyticsItemSuccess}`}>
+                <div className={`${styles.analyticsIcon} ${styles.iconGeneratedBg}`}>
+                  <CheckCircle size={18} color="#10b981" />
                 </div>
                 <div className={styles.analyticsData}>
-                  <h4>Digital Certificates Generated</h4>
+                  <h4>Generated</h4>
                   <p className={styles.analyticsValue}>
-                    {analyticsData.digitalCertificatesGenerated}
+                    {analyticsData.digitalCertificatesGenerated.toLocaleString()}
                   </p>
                   <p className={styles.analyticsDescription}>
                     Certificates with digital verification
@@ -253,107 +251,99 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className={styles.analyticsItem}>
-                <div className={styles.analyticsIcon}>
-                  <BarChart3 className={styles.iconDigitalNotGenerated} />
+              <div className={`${styles.analyticsItem} ${styles.analyticsItemWarning}`}>
+                <div className={`${styles.analyticsIcon} ${styles.iconNotGeneratedBg}`}>
+                  <BarChart3 size={18} color="#f59e0b" />
                 </div>
                 <div className={styles.analyticsData}>
-                  <h4>Digital Certificates Not Generated</h4>
+                  <h4>Not Generated</h4>
                   <p className={styles.analyticsValue}>
-                    {analyticsData.digitalCertificatesNotGenerated}
+                    {analyticsData.digitalCertificatesNotGenerated.toLocaleString()}
                   </p>
                   <p className={styles.analyticsDescription}>
                     Pending digital verification
                   </p>
                 </div>
               </div>
-
-              <div className={styles.analyticsItem}>
-                <div className={styles.pieChartContainer}>
-                  <div className={styles.pieChart}>
-                    <div
-                      className={styles.chartSegment}
-                      style={{
-                        background: `conic-gradient(
-                        #10b981 0deg ${(analyticsData.digitalCertificatesGenerated / (analyticsData.digitalCertificatesGenerated + analyticsData.digitalCertificatesNotGenerated)) * 360 || 0}deg,
-                        #f59e0b ${(analyticsData.digitalCertificatesGenerated / (analyticsData.digitalCertificatesGenerated + analyticsData.digitalCertificatesNotGenerated)) * 360 || 0}deg 360deg
-                      )`,
-                      }}
-                    >
-                      <div className={styles.chartCenter}>
-                        <span className={styles.chartPercentage}>
-                          {analyticsData.digitalCertificatesGenerated +
-                            analyticsData.digitalCertificatesNotGenerated >
-                          0
-                            ? Math.round(
-                                (analyticsData.digitalCertificatesGenerated /
-                                  (analyticsData.digitalCertificatesGenerated +
-                                    analyticsData.digitalCertificatesNotGenerated)) *
-                                  100,
-                              )
-                            : 0}
-                          %
-                        </span>
-                        <span className={styles.chartLabel}>Generated</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className={styles.chartLegend}>
-                    <div className={styles.legendItem}>
-                      <span className={styles.legendColorGenerated}></span>
-                      <span>
-                        Generated ({analyticsData.digitalCertificatesGenerated})
-                      </span>
-                    </div>
-                    <div className={styles.legendItem}>
-                      <span className={styles.legendColorNotGenerated}></span>
-                      <span>
-                        Not Generated (
-                        {analyticsData.digitalCertificatesNotGenerated})
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
+
+        {/* ---- Recent Activity Card ---- */}
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Activity size={18} color="var(--text-muted)" />
+              <h3 className={styles.cardTitle}>Recent Activity</h3>
+            </div>
+            <button className={styles.viewAllBtn}>
+              View All <ArrowRight size={14} />
+            </button>
+          </div>
+
+          {recentActivities.length > 0 ? (
+            <div className={styles.activityList}>
+              {recentActivities.map((activity, index) => (
+                <div key={activity.id} className={styles.activityItem}>
+                  <div className={styles.activityIndicator}>
+                    <div className={styles.activityDot} />
+                    {index < recentActivities.length - 1 && (
+                      <div className={styles.activityLine} />
+                    )}
+                  </div>
+                  <div className={styles.activityContent}>
+                    <p className={styles.activityText}>{activity.description}</p>
+                    <p className={styles.activityTime}>{activity.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.emptyState}>
+              <FileCheck
+                size={32}
+                color="var(--text-muted)"
+                style={{ marginBottom: 12, opacity: 0.7 }}
+              />
+              <p className={styles.emptyStateText}>No recent activities</p>
+              <p className={styles.emptyStateSubtext}>
+                Activities will appear here when system events occur.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Activity Card - Full width */}
-      <div className={styles.activitySection}>
-        <div className={`${styles.card} ${styles.activityCard}`}>
-          <div className={styles.cardHeader}>
-            <h3 className={styles.cardTitle}>Recent Activity</h3>
-            <button className={styles.viewAllBtn}>View All</button>
-          </div>
-          <div className={styles.cardContent}>
-            <div className={styles.activityList}>
-              {recentActivities.length > 0 ? (
-                recentActivities.map((activity, index) => (
-                  <div key={index} className={styles.activityItem}>
-                    <div className={styles.activityIndicator}>
-                      <div className={styles.activityDot}></div>
-                      {index < recentActivities.length - 1 && (
-                        <div className={styles.activityLine}></div>
-                      )}
-                    </div>
-                    <div className={styles.activityContent}>
-                      <p className={styles.activityText}>{activity.message}</p>
-                      <p className={styles.activityTime}>{activity.time}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className={styles.emptyState}>
-                  <p className={styles.emptyStateText}>
-                    No recent activities to display
-                  </p>
-                  <p className={styles.emptyStateSubtext}>
-                    Activities will appear here when system events occur
-                  </p>
-                </div>
-              )}
+      {/* ============ Full-width bottom notice (optional) ============ */}
+      <div className={styles.card}>
+        <div
+          className={styles.cardHeader}
+          style={{ marginBottom: 0, alignItems: "flex-start" }}
+        >
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                background: "var(--accent-soft)",
+                color: "var(--accent)",
+                borderRadius: 8,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <TrendingUp size={20} />
+            </div>
+            <div>
+              <h3 className={styles.cardTitle} style={{ fontSize: "1rem" }}>
+                {generatedPercent}% of all students have generated a digital certificate
+              </h3>
+              <p className={styles.cardSub}>
+                Based on {totalForChart.toLocaleString()} total students across{" "}
+                {formFourStats.totalSchools.toLocaleString()} registered schools.
+              </p>
             </div>
           </div>
         </div>

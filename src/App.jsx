@@ -195,19 +195,19 @@ function App() {
         </Route>
 
         {/* ---------- University ---------- */}
-        <Route element={<ProtectedRoute requiredRole="university" />}>
+        <Route >
           <Route path="/university" element={<UniversityManagement />}>
             <Route path="graduate" element={<Graduate onLogout={handleLogout} />} />
           </Route>
         </Route>
 
         {/* ---------- Employer ---------- */}
-        <Route element={<ProtectedRoute requiredRole="employer" />}>
+        <Route >
           <Route path="/employer" element={<EmployerDashboard onLogout={handleLogout} />} />
         </Route>
 
         {/* ---------- MANEB ---------- */}
-        <Route element={<ProtectedRoute requiredRole="maneb" />}>
+        <Route >
           <Route path="/maneb" element={<ManebPortal onLogout={handleLogout} />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />

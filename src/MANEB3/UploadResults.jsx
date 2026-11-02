@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, ChevronDown, FileText, X, Search } from 'lucide-react';
+import {
+  Upload, ChevronDown, FileText, X, Search, RefreshCw,
+  AlertCircle, CheckCircle2, Info, Inbox,
+} from 'lucide-react';
 import { useTheme } from './maneb';
 import { useManebContract } from '../hooks/useSmartContract';
 import { useConnectionStatus } from '../hooks/useSmartContract';
@@ -8,7 +11,12 @@ import styles from './uploadresults.module.css';
 
 const UploadResults = () => {
   const { darkMode } = useTheme();
-  const { getSchoolNamesByDistrict, setFormFourDetailsBatch, addFormFourDetailsSimple, getAllFormFourDetails, getFormFourDetails } = useManebContract();
+  const {
+    getSchoolNamesByDistrict,
+    setFormFourDetailsBatch,
+    addFormFourDetailsSimple,
+    getAllFormFourDetails,
+  } = useManebContract();
   const { isConnected } = useConnectionStatus();
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -18,68 +26,44 @@ const UploadResults = () => {
     district: '',
   });
 
-  // State for filtered schools
   const [filteredSchools, setFilteredSchools] = useState([]);
   const [isLoadingSchools, setIsLoadingSchools] = useState(false);
 
-  // State for Excel data processing
   const [extractedStudents, setExtractedStudents] = useState([]);
   const [isProcessingFile, setIsProcessingFile] = useState(false);
   const [fileProcessingError, setFileProcessingError] = useState('');
   const [fileProcessingSuccess, setFileProcessingSuccess] = useState('');
 
-  // State for blockchain submission
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionError, setSubmissionError] = useState('');
   const [submissionSuccess, setSubmissionSuccess] = useState('');
 
-  // State for existing Form Four details
   const [existingFormFourDetails, setExistingFormFourDetails] = useState([]);
   const [loadingExistingDetails, setLoadingExistingDetails] = useState(true);
   const [existingDetailsError, setExistingDetailsError] = useState('');
 
-  // Filter states
-  const [filters, setFilters] = useState({
-    district: '',
-    school: '',
-    search: ''
-  });
+  const [filters, setFilters] = useState({ district: '', school: '', search: '' });
 
-  // Malawi's 28 districts
   const malawiDistricts = [
     'Balaka', 'Blantyre', 'Chikwawa', 'Chiradzulu', 'Chitipa', 'Dedza',
     'Dowa', 'Karonga', 'Kasungu', 'Likoma', 'Lilongwe', 'Machinga',
     'Mangochi', 'Mchinji', 'Mulanje', 'Mwanza', 'Mzimba', 'Neno',
     'Nkhata Bay', 'Nkhotakota', 'Nsanje', 'Ntcheu', 'Ntchisi', 'Phalombe',
-    'Rumphi', 'Salima', 'Thyolo', 'Zomba'
+    'Rumphi', 'Salima', 'Thyolo', 'Zomba',
   ];
 
-  // Load existing Form Four details and clear filtered schools on component mount
   useEffect(() => {
     setFilteredSchools([]);
     loadExistingFormFourDetails();
   }, []);
 
-  // Load existing Form Four details from blockchain
   const loadExistingFormFourDetails = async () => {
     try {
       setLoadingExistingDetails(true);
       setExistingDetailsError('');
-
-      console.log('📚 Loading existing Form Four details...');
-
       const allDetails = await getAllFormFourDetails();
-
-      if (allDetails && allDetails.length > 0) {
-        setExistingFormFourDetails(allDetails);
-        console.log(`✅ Loaded ${allDetails.length} existing Form Four records`);
-      } else {
-        console.log('📋 No existing Form Four details found');
-        setExistingFormFourDetails([]);
-      }
-
+      setExistingFormFourDetails(Array.isArray(allDetails) ? allDetails : []);
     } catch (error) {
-      console.error('❌ Error loading existing Form Four details:', error);
       setExistingDetailsError(`Failed to load existing records: ${error.message}`);
     } finally {
       setLoadingExistingDetails(false);
@@ -94,14 +78,11 @@ const UploadResults = () => {
     }
   };
 
-  // Process Excel file to extract student names and examination numbers
   const processExcelFile = (file) => {
     setIsProcessingFile(true);
     setFileProcessingError('');
     setFileProcessingSuccess('');
     setExtractedStudents([]);
-
-    console.log('📁 Processing Excel file:', file.name);
 
     const fileReader = new FileReader();
 
@@ -111,8 +92,6 @@ const UploadResults = () => {
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-
-        // Convert to JSON with headers
         const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
 
         if (jsonData.length === 0) {
@@ -120,57 +99,48 @@ const UploadResults = () => {
           return;
         }
 
-        console.log('📊 Raw Excel data:', jsonData);
+        const extractedData = jsonData
+          .map((row, index) => {
+            const studentName =
+              row['Student Name'] || row['StudentName'] || row['Student_Name'] ||
+              row['Name'] || row['student_name'] ||
+              row['STUDENT NAME'] || row['STUDENT_NAME'] ||
+              Object.values(row)[0];
 
-        // Extract student data - try different possible column names
-        const extractedData = jsonData.map((row, index) => {
-          // Try different possible column names for student name
-          const studentName = row['Student Name'] ||
-                             row['StudentName'] ||
-                             row['Student_Name'] ||
-                             row['Name'] ||
-                             row['student_name'] ||
-                             row['STUDENT NAME'] ||
-                             row['STUDENT_NAME'] ||
-                             Object.values(row)[0]; // First column if no header match
+            const examNumber =
+              row['Examination Number'] || row['ExaminationNumber'] ||
+              row['Examination_Number'] || row['Exam Number'] ||
+              row['ExamNumber'] || row['Exam_Number'] ||
+              row['examination_number'] || row['exam_number'] ||
+              row['EXAMINATION NUMBER'] || row['EXAM NUMBER'] ||
+              Object.values(row)[1];
 
-          // Try different possible column names for examination number
-          const examNumber = row['Examination Number'] ||
-                            row['ExaminationNumber'] ||
-                            row['Examination_Number'] ||
-                            row['Exam Number'] ||
-                            row['ExamNumber'] ||
-                            row['Exam_Number'] ||
-                            row['examination_number'] ||
-                            row['exam_number'] ||
-                            row['EXAMINATION NUMBER'] ||
-                            row['EXAM NUMBER'] ||
-                            Object.values(row)[1]; // Second column if no header match
-
-          return {
-            id: index + 1,
-            studentName: studentName ? String(studentName).trim() : '',
-            examinationNumber: examNumber ? String(examNumber).trim() : ''
-          };
-        }).filter(student =>
-          student.studentName &&
-          student.examinationNumber &&
-          student.studentName !== 'Student Name' &&
-          student.examinationNumber !== 'Examination Number'
-        );
-
-        console.log('✅ Extracted student data:', extractedData);
+            return {
+              id: index + 1,
+              studentName: studentName ? String(studentName).trim() : '',
+              examinationNumber: examNumber ? String(examNumber).trim() : '',
+            };
+          })
+          .filter(
+            (student) =>
+              student.studentName &&
+              student.examinationNumber &&
+              student.studentName !== 'Student Name' &&
+              student.examinationNumber !== 'Examination Number',
+          );
 
         if (extractedData.length === 0) {
-          setFileProcessingError('No valid student data found. Please ensure your Excel file has columns for "Student Name" and "Examination Number".');
+          setFileProcessingError(
+            'No valid student data found. Please ensure your Excel file has columns for "Student Name" and "Examination Number".',
+          );
           return;
         }
 
         setExtractedStudents(extractedData);
-        setFileProcessingSuccess(`✅ Successfully extracted ${extractedData.length} student records from Excel file.`);
-
+        setFileProcessingSuccess(
+          `Successfully extracted ${extractedData.length} student records from Excel file.`,
+        );
       } catch (error) {
-        console.error('❌ Error processing Excel file:', error);
         setFileProcessingError(`Error processing Excel file: ${error.message}`);
       } finally {
         setIsProcessingFile(false);
@@ -185,34 +155,27 @@ const UploadResults = () => {
     fileReader.readAsArrayBuffer(file);
   };
 
-  // Fetch schools by district
   const fetchSchoolsByDistrict = async (district) => {
     if (!district) {
       setFilteredSchools([]);
       return;
     }
-
     try {
       setIsLoadingSchools(true);
-      console.log('🔍 Fetching schools for district:', district);
-
       const schools = await getSchoolNamesByDistrict(district);
-      console.log('📚 Schools found:', schools);
-
-      // Process the schools data
       let processedSchools = [];
       if (Array.isArray(schools) && schools.length > 0) {
         processedSchools = schools.map((school, index) => ({
           id: index + 1,
-          name: typeof school === 'string' ? school : school.schoolName || school.name || `School ${index + 1}`
+          name:
+            typeof school === 'string'
+              ? school
+              : school.schoolName || school.name || `School ${index + 1}`,
         }));
       }
-
       setFilteredSchools(processedSchools);
-      console.log('✅ Processed schools:', processedSchools);
-
     } catch (error) {
-      console.error('❌ Error fetching schools by district:', error);
+      console.error('Error fetching schools by district:', error);
       setFilteredSchools([]);
     } finally {
       setIsLoadingSchools(false);
@@ -221,156 +184,83 @@ const UploadResults = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // If district changes, fetch schools for that district
     if (name === 'district') {
       fetchSchoolsByDistrict(value);
-      // Clear school name when district changes
-      setFormData(prev => ({
-        ...prev,
-        district: value,
-        schoolName: ''
-      }));
+      setFormData((prev) => ({ ...prev, district: value, schoolName: '' }));
     }
   };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validation checks
-    if (!isConnected) {
-      setSubmissionError('Please connect your wallet first.');
-      return;
-    }
-
-    if (!formData.schoolName || !formData.examinationYear || !formData.district) {
-      setSubmissionError('Please fill in all required fields.');
-      return;
-    }
-
-    if (!selectedFile) {
-      setSubmissionError('Please upload an Excel file with student data.');
-      return;
-    }
-
-    if (extractedStudents.length === 0) {
-      setSubmissionError('No valid student data found in the Excel file. Please check the file format.');
-      return;
-    }
+    if (!isConnected) return setSubmissionError('Please connect your wallet first.');
+    if (!formData.schoolName || !formData.examinationYear || !formData.district)
+      return setSubmissionError('Please fill in all required fields.');
+    if (!selectedFile)
+      return setSubmissionError('Please upload an Excel file with student data.');
+    if (extractedStudents.length === 0)
+      return setSubmissionError('No valid student data found in the Excel file.');
 
     try {
       setIsSubmitting(true);
       setSubmissionError('');
       setSubmissionSuccess('');
 
-      console.log('🚀 Submitting Form Four details to blockchain...');
-      console.log('📊 Form data:', formData);
-      console.log('👥 Students to add:', extractedStudents.length);
-
-      // Prepare data for blockchain submission
-      const studentNames = extractedStudents.map(student => student.studentName);
-      const examinationNumbers = extractedStudents.map(student => student.examinationNumber);
-
-      // Ensure year is properly converted to number
+      const studentNames = extractedStudents.map((s) => s.studentName);
+      const examinationNumbers = extractedStudents.map((s) => s.examinationNumber);
       const yearOfExamination = Number(formData.examinationYear);
 
-      console.log('🔍 Year conversion debug:', {
-        originalValue: formData.examinationYear,
-        originalType: typeof formData.examinationYear,
-        convertedValue: yearOfExamination,
-        convertedType: typeof yearOfExamination,
-        isNaN: isNaN(yearOfExamination)
-      });
-
-      // Additional validation
-      if (isNaN(yearOfExamination) || yearOfExamination < 1900 || yearOfExamination > 2100) {
-        throw new Error(`Invalid examination year: ${formData.examinationYear} (converted to: ${yearOfExamination})`);
-      }
-
-      if (studentNames.some(name => !name || name.trim().length === 0)) {
+      if (isNaN(yearOfExamination) || yearOfExamination < 1900 || yearOfExamination > 2100)
+        throw new Error(`Invalid examination year: ${formData.examinationYear}`);
+      if (studentNames.some((n) => !n || n.trim().length === 0))
         throw new Error('Some student names are empty or invalid');
-      }
-
-      if (examinationNumbers.some(examNum => !examNum || examNum.trim().length === 0)) {
+      if (examinationNumbers.some((n) => !n || n.trim().length === 0))
         throw new Error('Some examination numbers are empty or invalid');
-      }
-
-      if (!formData.schoolName || formData.schoolName.trim().length === 0) {
+      if (!formData.schoolName || formData.schoolName.trim().length === 0)
         throw new Error('School name is required');
-      }
 
-      console.log('📋 Blockchain submission data:', {
-        studentNames,
-        examinationNumbers,
-        schoolName: formData.schoolName,
-        yearOfExamination,
-        studentCount: studentNames.length,
-        examNumberCount: examinationNumbers.length
-      });
-
-      // Try the main function first, then fallback to simple implementation
       let result;
       try {
-        console.log('🚀 Attempting primary setFormFourDetailsBatch method...');
         result = await setFormFourDetailsBatch(
           studentNames,
           examinationNumbers,
           formData.schoolName,
-          yearOfExamination
+          yearOfExamination,
         );
-        console.log('✅ Primary method successful:', result);
       } catch (primaryError) {
-        console.error('❌ Primary method failed:', primaryError.message);
-        console.log('🔄 Trying alternative simple implementation...');
-
         try {
           result = await addFormFourDetailsSimple(
             studentNames,
             examinationNumbers,
             formData.schoolName,
-            yearOfExamination
+            yearOfExamination,
           );
-          console.log('✅ Alternative method successful:', result);
         } catch (alternativeError) {
-          console.error('❌ Alternative method also failed:', alternativeError.message);
-          throw new Error(`Both methods failed. Primary: ${primaryError.message}. Alternative: ${alternativeError.message}`);
+          throw new Error(
+            `Both methods failed. Primary: ${primaryError.message}. Alternative: ${alternativeError.message}`,
+          );
         }
       }
 
-      setSubmissionSuccess(`🎉 Successfully added ${extractedStudents.length} Form Four student records to the blockchain!
+      setSubmissionSuccess(
+        `Successfully added ${extractedStudents.length} Form Four student records.\n\nTransaction Hash: ${result.transactionHash}\nSchool: ${formData.schoolName}\nYear: ${formData.examinationYear}\nStudents: ${extractedStudents.length}`,
+      );
 
-Transaction Hash: ${result.transactionHash}
-School: ${formData.schoolName}
-Year: ${formData.examinationYear}
-Students: ${extractedStudents.length}`);
-
-      // Clear form after successful submission
       setTimeout(() => {
-        setFormData({
-          schoolName: '',
-          examinationYear: '',
-          district: '',
-        });
+        setFormData({ schoolName: '', examinationYear: '', district: '' });
         setSelectedFile(null);
         setExtractedStudents([]);
         setFilteredSchools([]);
         setFileProcessingSuccess('');
       }, 5000);
-
     } catch (error) {
-      console.error('❌ Error submitting Form Four details:', error);
       setSubmissionError(`Failed to add Form Four details: ${error.message}`);
     } finally {
       setIsSubmitting(false);
@@ -384,26 +274,35 @@ Students: ${extractedStudents.length}`);
     setFileProcessingSuccess('');
   };
 
+  /* ============================================================
+     RENDER
+     ============================================================ */
   return (
-    <div className={styles.contentCard}>
-      <div className={styles.cardHeader}>
-        <h2 className={styles.pageTitle}>Upload MSCE Results</h2>
-        <div className={styles.headerDivider}></div>
-      </div>
-      
-      {/* Section 1: Form Card */}
-      <div className={styles.sectionCard}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>Add Form Four Details</h3>
-          <p className={styles.sectionDescription}>
-            Upload student examination results to the blockchain
+    <div className={styles.container}>
+      <div className={styles.intro}>
+        <div>
+          <h1 className={styles.title}>Upload MSCE Results</h1>
+          <p className={styles.subtitle}>
+            Add Form Four examination details and review existing records.
           </p>
         </div>
-        
-        <form onSubmit={handleSubmit} className={styles.uploadForm}>
+      </div>
+
+      {/* ---------------- Upload Card ---------------- */}
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h2 className={styles.cardTitle}>Add Form Four Details</h2>
+            <p className={styles.cardSub}>
+              Upload student examination results to the blockchain.
+            </p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit}>
           <div className={styles.formGrid}>
             <div className={styles.formGroup}>
-              <label htmlFor="district" className={styles.formLabel}>
+              <label className={styles.label} htmlFor="district">
                 District
               </label>
               <div className={styles.selectWrapper}>
@@ -412,12 +311,12 @@ Students: ${extractedStudents.length}`);
                   name="district"
                   value={formData.district}
                   onChange={handleInputChange}
-                  className={styles.formSelect}
+                  className={styles.select}
                   required
                 >
                   <option value="">Select District</option>
-                  {malawiDistricts.map((district, index) => (
-                    <option key={index} value={district}>
+                  {malawiDistricts.map((district) => (
+                    <option key={district} value={district}>
                       {district}
                     </option>
                   ))}
@@ -427,9 +326,11 @@ Students: ${extractedStudents.length}`);
             </div>
 
             <div className={styles.formGroup}>
-              <label htmlFor="schoolName" className={styles.formLabel}>
+              <label className={styles.label} htmlFor="schoolName">
                 Secondary School Name
-                {isLoadingSchools && <span className={styles.loadingText}> (Loading schools...)</span>}
+                {isLoadingSchools && (
+                  <span className={styles.loadingText}> (loading…)</span>
+                )}
               </label>
               <div className={styles.selectWrapper}>
                 <select
@@ -437,7 +338,7 @@ Students: ${extractedStudents.length}`);
                   name="schoolName"
                   value={formData.schoolName}
                   onChange={handleInputChange}
-                  className={styles.formSelect}
+                  className={styles.select}
                   required
                   disabled={!formData.district || isLoadingSchools}
                 >
@@ -445,11 +346,10 @@ Students: ${extractedStudents.length}`);
                     {!formData.district
                       ? 'Select district first'
                       : isLoadingSchools
-                        ? 'Loading schools...'
-                        : filteredSchools.length === 0
-                          ? 'No schools found in this district'
-                          : 'Select school name'
-                    }
+                      ? 'Loading schools…'
+                      : filteredSchools.length === 0
+                      ? 'No schools found in this district'
+                      : 'Select school name'}
                   </option>
                   {filteredSchools.map((school) => (
                     <option key={school.id} value={school.name}>
@@ -459,15 +359,18 @@ Students: ${extractedStudents.length}`);
                 </select>
                 <ChevronDown className={styles.selectIcon} />
               </div>
-              {formData.district && filteredSchools.length === 0 && !isLoadingSchools && (
-                <div className={styles.noSchoolsMessage}>
-                  No schools registered in {formData.district} district. Please contact admin to register schools first.
-                </div>
-              )}
+              {formData.district &&
+                filteredSchools.length === 0 &&
+                !isLoadingSchools && (
+                  <div className={styles.noSchoolsMessage}>
+                    No schools registered in {formData.district}. Contact admin
+                    to register schools first.
+                  </div>
+                )}
             </div>
 
             <div className={styles.formGroup}>
-              <label htmlFor="examinationYear" className={styles.formLabel}>
+              <label className={styles.label} htmlFor="examinationYear">
                 Year of Examination
               </label>
               <div className={styles.selectWrapper}>
@@ -476,7 +379,7 @@ Students: ${extractedStudents.length}`);
                   name="examinationYear"
                   value={formData.examinationYear}
                   onChange={handleInputChange}
-                  className={styles.formSelect}
+                  className={styles.select}
                   required
                 >
                   <option value="">Select year</option>
@@ -496,20 +399,21 @@ Students: ${extractedStudents.length}`);
 
           <div className={styles.uploadSection}>
             <div className={styles.uploadHeaderContent}>
-              <div>
-                <h4 className={styles.uploadTitle}>Results Excel File</h4>
-                <p className={styles.uploadDescription}>
-                  Upload the Excel file containing student names and examination numbers
-                </p>
-              </div>
+              <h4 className={styles.uploadTitle}>Results Excel File</h4>
+              <p className={styles.uploadDescription}>
+                Upload the Excel file containing student names and examination
+                numbers.
+              </p>
             </div>
-            
+
             {selectedFile ? (
               <div className={styles.filePreview}>
                 <div className={styles.fileInfo}>
                   <FileText className={styles.fileIcon} />
                   <div className={styles.fileDetails}>
-                    <span className={styles.fileName}>{selectedFile.name}</span>
+                    <span className={styles.fileName}>
+                      {selectedFile.name}
+                    </span>
                     <span className={styles.fileSize}>
                       {(selectedFile.size / 1024).toFixed(1)} KB
                     </span>
@@ -536,56 +440,57 @@ Students: ${extractedStudents.length}`);
                 <div className={styles.uploadContent}>
                   <Upload className={styles.uploadIcon} />
                   <p className={styles.uploadText}>
-                    Drag and drop your Excel file here, or click to browse
+                    Click to browse or drag and drop your Excel file
                   </p>
-                  <span className={styles.fileTypes}>Supported: .xlsx, .xls, .csv</span>
-                  <button type="button" className={styles.btnSecondary}>
-                    Browse Files
-                  </button>
+                  <span className={styles.fileTypes}>
+                    Supported: .xlsx, .xls, .csv
+                  </span>
                 </div>
               </label>
             )}
           </div>
 
-          {/* File Processing Status */}
           {isProcessingFile && (
-            <div className={styles.processingSection}>
-              <div className={styles.processingMessage}>
-                <div className={styles.loadingSpinner}></div>
-                <span>Processing Excel file...</span>
-              </div>
+            <div className={styles.alert}>
+              <RefreshCw size={16} className={styles.loadingSpinner} />
+              <span>Processing Excel file…</span>
             </div>
           )}
 
           {fileProcessingError && (
-            <div className={styles.errorMessage}>
-              {fileProcessingError}
+            <div className={`${styles.alert} ${styles.alertDanger}`}>
+              <AlertCircle size={16} />
+              <span>{fileProcessingError}</span>
             </div>
           )}
 
           {fileProcessingSuccess && (
-            <div className={styles.successMessage}>
-              {fileProcessingSuccess}
+            <div className={`${styles.alert} ${styles.alertSuccess}`}>
+              <CheckCircle2 size={16} />
+              <span>{fileProcessingSuccess}</span>
             </div>
           )}
 
-          {/* Submission Status */}
           {submissionError && (
-            <div className={styles.errorMessage}>
-              {submissionError}
+            <div className={`${styles.alert} ${styles.alertDanger}`}>
+              <AlertCircle size={16} />
+              <span>{submissionError}</span>
             </div>
           )}
 
           {submissionSuccess && (
-            <div className={styles.successMessage}>
+            <div className={`${styles.alert} ${styles.alertSuccess}`}>
+              <CheckCircle2 size={16} />
               <pre className={styles.successDetails}>{submissionSuccess}</pre>
             </div>
           )}
 
-          {/* Wallet Connection Warning */}
           {!isConnected && (
-            <div className={styles.warningMessage}>
-              ⚠️ Please connect your wallet to submit Form Four details to the blockchain.
+            <div className={`${styles.alert} ${styles.alertInfo}`}>
+              <Info size={16} />
+              <span>
+                Please connect your wallet to submit Form Four details.
+              </span>
             </div>
           )}
 
@@ -593,122 +498,61 @@ Students: ${extractedStudents.length}`);
             <button
               type="submit"
               className={styles.btnPrimary}
-              disabled={isSubmitting || !isConnected || extractedStudents.length === 0}
+              disabled={
+                isSubmitting || !isConnected || extractedStudents.length === 0
+              }
             >
-              {isSubmitting ? '⏳ Processing...' : 'Add Form Four Details'}
+              {isSubmitting ? (
+                <>
+                  <RefreshCw size={14} className={styles.loadingSpinner} />{' '}
+                  Processing…
+                </>
+              ) : (
+                <>
+                  <Upload size={14} /> Add Form Four Details
+                </>
+              )}
             </button>
           </div>
         </form>
       </div>
 
-      {/* Section 2: Filter Card */}
-      <div className={styles.sectionCard}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>Filter Records</h3>
-          <p className={styles.sectionDescription}>
-            Search and filter existing Form Four records
-          </p>
-        </div>
-        
-        <div className={styles.filterGrid}>
-          <div className={styles.formGroup}>
-            <label htmlFor="searchDistrict" className={styles.formLabel}>
-              District
-            </label>
-            <div className={styles.selectWrapper}>
-              <select
-                id="searchDistrict"
-                name="district"
-                value={filters.district}
-                onChange={handleFilterChange}
-                className={styles.formSelect}
-              >
-                <option value="">All Districts</option>
-                {malawiDistricts.map((district, index) => (
-                  <option key={index} value={district}>
-                    {district}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className={styles.selectIcon} />
-            </div>
+      {/* ---------------- Records Table ---------------- */}
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <div>
+            <h2 className={styles.cardTitle}>Form Four Records</h2>
+            <p className={styles.cardSub}>
+              Current student details stored on the blockchain.
+            </p>
           </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="searchSchool" className={styles.formLabel}>
-              School
-            </label>
-            <div className={styles.selectWrapper}>
-              <select
-                id="searchSchool"
-                name="school"
-                value={filters.school}
-                onChange={handleFilterChange}
-                className={styles.formSelect}
-              >
-                <option value="">All Schools</option>
-                {/* School options will be populated based on selected district */}
-              </select>
-              <ChevronDown className={styles.selectIcon} />
-            </div>
-          </div>
-
-          <div className={styles.formGroup}>
-            <label htmlFor="searchInput" className={styles.formLabel}>
-              Search
-            </label>
-            <div className={styles.searchWrapper}>
-              <Search className={styles.searchIcon} />
-              <input
-                type="text"
-                id="searchInput"
-                name="search"
-                value={filters.search}
-                onChange={handleFilterChange}
-                placeholder="Search by student name or exam number..."
-                className={styles.searchInput}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Section 3: Records Table Card */}
-      <div className={styles.sectionCard}>
-        <div className={styles.sectionHeader}>
-          <div className={styles.sectionHeaderContent}>
-            <div>
-              <h3 className={styles.sectionTitle}>
-                Form Four Records
-              </h3>
-              <p className={styles.sectionDescription}>
-                Current Form Four student details stored in the system
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={loadExistingFormFourDetails}
-              className={styles.refreshDataBtn}
-              disabled={loadingExistingDetails}
-              title="Refresh data"
-            >
-              {loadingExistingDetails ? '⏳' : '🔄'}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={loadExistingFormFourDetails}
+            className={styles.btnGhost}
+            disabled={loadingExistingDetails}
+          >
+            <RefreshCw
+              size={14}
+              className={loadingExistingDetails ? styles.loadingSpinner : ''}
+            />
+            {loadingExistingDetails ? 'Loading…' : 'Refresh'}
+          </button>
         </div>
 
         {loadingExistingDetails ? (
           <div className={styles.loadingContainer}>
-            <div className={styles.loadingSpinner}></div>
-            <span>Loading Form Four records...</span>
+            <RefreshCw size={20} className={styles.loadingSpinner} />
+            <span>Loading records…</span>
           </div>
         ) : existingDetailsError ? (
-          <div className={styles.errorMessage}>
-            {existingDetailsError}
+          <div className={`${styles.alert} ${styles.alertDanger}`}>
+            <AlertCircle size={16} />
+            <span>{existingDetailsError}</span>
           </div>
         ) : existingFormFourDetails.length > 0 ? (
-          <div className={styles.tableContainer}>
-            <table className={styles.detailsTable}>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
               <thead>
                 <tr>
                   <th>Student Name</th>
@@ -720,8 +564,12 @@ Students: ${extractedStudents.length}`);
               <tbody>
                 {existingFormFourDetails.map((detail, index) => (
                   <tr key={index}>
-                    <td className={styles.studentNameCell}>{detail.studentName}</td>
-                    <td className={styles.examNumberCell}>{detail.examinationNumber}</td>
+                    <td className={styles.studentNameCell}>
+                      {detail.studentName}
+                    </td>
+                    <td className={styles.examNumberCell}>
+                      {detail.examinationNumber}
+                    </td>
                     <td>{detail.schoolName}</td>
                     <td>{detail.yearOfExamination}</td>
                   </tr>
@@ -731,8 +579,11 @@ Students: ${extractedStudents.length}`);
           </div>
         ) : (
           <div className={styles.emptyState}>
-            <p>No Form Four records found yet.</p>
-            <p>Upload your first batch of results above to get started.</p>
+            <Inbox size={40} />
+            <p className={styles.emptyStateTitle}>No records yet</p>
+            <p className={styles.emptyStateText}>
+              Upload your first batch of results above to get started.
+            </p>
           </div>
         )}
       </div>

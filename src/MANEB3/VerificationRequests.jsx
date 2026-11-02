@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, RefreshCw, CheckCircle, Clock, AlertCircle, Search, Filter } from 'lucide-react';
+import {
+  Eye, RefreshCw, CheckCircle, Clock, AlertCircle,
+  Search, Filter, X, Inbox, ShieldCheck, FileText,
+} from 'lucide-react';
 import { useTheme } from './maneb';
 import { useManebContract, useConnectionStatus } from '../hooks/useSmartContract';
 import styles from './verification.module.css';
@@ -8,7 +11,6 @@ const VerificationRequests = () => {
   const { darkMode } = useTheme();
   const { isConnected } = useConnectionStatus();
 
-  // State for verification requests data
   const [verificationRequests, setVerificationRequests] = useState([]);
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -18,14 +20,12 @@ const VerificationRequests = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
 
-  // Get MANEB contract functions
-  const { 
-    getAllVerificationRequests, 
+  const {
+    getAllVerificationRequests,
     getVerifiedStudents,
-    getVerificationHistory 
+    getVerificationHistory,
   } = useManebContract();
 
-  // Fetch verification requests from blockchain
   const fetchVerificationRequests = async () => {
     if (!isConnected) {
       setError('Please connect your wallet to view verification requests');
@@ -36,29 +36,21 @@ const VerificationRequests = () => {
     setError('');
 
     try {
-      console.log('🔄 Fetching verification requests from MANEB contract...');
-
-      // Get all verification requests from blockchain
       const requests = await getAllVerificationRequests();
-      console.log('✅ Raw verification requests data:', requests);
 
       if (Array.isArray(requests) && requests.length > 0) {
-        // Get verified students to track verification status
         const verifiedStudents = await getVerifiedStudents();
-        console.log('✅ Verified students:', verifiedStudents);
-
-        // Get verification history for audit trail
         const verificationHistory = await getVerificationHistory();
-        console.log('✅ Verification history:', verificationHistory);
 
-        // Format the data for display
         const formattedRequests = requests.map((request, index) => {
           const isVerified = verifiedStudents.some(
-            student => student.examinationNumber === request.examinationNumber
+            (student) =>
+              student.examinationNumber === request.examinationNumber,
           );
-          
+
           const verificationRecord = verificationHistory.find(
-            record => record.examinationNumber === request.examinationNumber
+            (record) =>
+              record.examinationNumber === request.examinationNumber,
           );
 
           return {
@@ -68,25 +60,25 @@ const VerificationRequests = () => {
             schoolName: request.schoolName || '',
             yearOfExamination: request.yearOfExamination || '',
             dateOfApproval: request.dateOfApproval || '',
-            status: isVerified ? 'Verified' : (request.dateOfApproval ? 'Approved' : 'Pending'),
+            status: isVerified
+              ? 'Verified'
+              : request.dateOfApproval
+              ? 'Approved'
+              : 'Pending',
             verificationDate: verificationRecord?.verificationDate || '',
             verifiedBy: verificationRecord?.verifiedBy || '',
             scanCount: verificationRecord?.scanCount || 0,
-            lastScanned: verificationRecord?.lastScanned || ''
+            lastScanned: verificationRecord?.lastScanned || '',
           };
         });
 
-        console.log('✅ Formatted verification requests:', formattedRequests);
         setVerificationRequests(formattedRequests);
         setFilteredRequests(formattedRequests);
       } else {
-        console.log('ℹ️ No verification requests found');
         setVerificationRequests([]);
         setFilteredRequests([]);
       }
-
     } catch (error) {
-      console.error('❌ Error fetching verification requests:', error);
       setError(`Failed to fetch verification requests: ${error.message}`);
       setVerificationRequests([]);
       setFilteredRequests([]);
@@ -95,43 +87,43 @@ const VerificationRequests = () => {
     }
   };
 
-  // Filter requests based on search and status
   useEffect(() => {
     let filtered = verificationRequests;
 
-    // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(request =>
-        request.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.examinationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.schoolName.toLowerCase().includes(searchTerm.toLowerCase())
+      filtered = filtered.filter(
+        (request) =>
+          request.studentName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          request.examinationNumber
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          request.schoolName.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     }
 
-    // Apply status filter
     if (statusFilter !== 'all') {
-      filtered = filtered.filter(request =>
-        request.status.toLowerCase() === statusFilter.toLowerCase()
+      filtered = filtered.filter(
+        (request) =>
+          request.status.toLowerCase() === statusFilter.toLowerCase(),
       );
     }
 
     setFilteredRequests(filtered);
   }, [searchTerm, statusFilter, verificationRequests]);
 
-  // Load data on component mount and when connection status changes
   useEffect(() => {
     if (isConnected) {
       fetchVerificationRequests();
     }
   }, [isConnected]);
 
-  // Handle view details
   const handleViewDetails = (request) => {
     setSelectedRequest(request);
     setShowDetailsModal(true);
   };
 
-  // Format date for display
   const formatDate = (timestamp) => {
     if (!timestamp || timestamp === '0') return 'Not available';
     try {
@@ -142,25 +134,22 @@ const VerificationRequests = () => {
     }
   };
 
-  // Get status badge style
-  const getStatusBadgeStyle = (status) => {
+  const statusBadgeClass = (status) => {
     switch (status.toLowerCase()) {
       case 'verified':
-        return `${styles.statusBadge} ${styles.statusVerified}`;
+        return `${styles.badge} ${styles.badgeVerified}`;
       case 'approved':
-        return `${styles.statusBadge} ${styles.statusApproved}`;
+        return `${styles.badge} ${styles.badgeApproved}`;
       case 'pending':
-        return `${styles.statusBadge} ${styles.statusPending}`;
+        return `${styles.badge} ${styles.badgePending}`;
       default:
-        return `${styles.statusBadge} ${styles.statusPending}`;
+        return `${styles.badge} ${styles.badgePending}`;
     }
   };
 
-  // Get status icon
-  const getStatusIcon = (status) => {
+  const statusIcon = (status) => {
     switch (status.toLowerCase()) {
       case 'verified':
-        return <CheckCircle size={12} />;
       case 'approved':
         return <CheckCircle size={12} />;
       case 'pending':
@@ -170,244 +159,289 @@ const VerificationRequests = () => {
     }
   };
 
+  /* ============================================================
+     RENDER
+     ============================================================ */
   return (
-    <div className={`${styles.contentCard} ${darkMode ? styles.darkTheme : styles.lightTheme}`}>
-      <div className={styles.cardHeader}>
-        <h2 className={styles.pageTitle}>Verification Requests & Tracking</h2>
-        <div className={styles.headerActions}>
+    <div className={styles.container}>
+      <div className={styles.intro}>
+        <div>
+          <h1 className={styles.title}>Verification Requests</h1>
+          <p className={styles.subtitle}>
+            Track certificate verification requests and audit trails.
+          </p>
+        </div>
+      </div>
+
+      {!isConnected && (
+        <div className={`${styles.alert} ${styles.alertWarning}`}>
+          <AlertCircle size={16} />
+          <span>
+            Please connect your wallet to view verification requests.
+          </span>
+        </div>
+      )}
+
+      {error && (
+        <div className={`${styles.alert} ${styles.alertDanger}`}>
+          <AlertCircle size={16} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {verificationRequests.length > 0 && !isLoading && (
+        <div className={styles.statsRow}>
+          <div className={`${styles.statCard} ${styles.statTotal}`}>
+            <p className={styles.statLabel}>Total Requests</p>
+            <p className={styles.statValue}>{verificationRequests.length}</p>
+          </div>
+          <div className={`${styles.statCard} ${styles.statVerified}`}>
+            <p className={styles.statLabel}>Verified</p>
+            <p className={styles.statValue}>
+              {
+                verificationRequests.filter((r) => r.status === 'Verified')
+                  .length
+              }
+            </p>
+          </div>
+          <div className={`${styles.statCard} ${styles.statApproved}`}>
+            <p className={styles.statLabel}>Approved</p>
+            <p className={styles.statValue}>
+              {
+                verificationRequests.filter((r) => r.status === 'Approved')
+                  .length
+              }
+            </p>
+          </div>
+          <div className={`${styles.statCard} ${styles.statPending}`}>
+            <p className={styles.statLabel}>Pending</p>
+            <p className={styles.statValue}>
+              {
+                verificationRequests.filter((r) => r.status === 'Pending')
+                  .length
+              }
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className={styles.card}>
+        <div className={styles.cardHeader}>
+          <h2 className={styles.cardTitle}>Requests</h2>
           <button
             onClick={fetchVerificationRequests}
             disabled={isLoading || !isConnected}
-            className={styles.refreshBtn}
+            className={styles.btnGhost}
             title="Refresh verification requests"
           >
-            <RefreshCw size={16} className={isLoading ? styles.spinning : ''} />
+            <RefreshCw
+              size={14}
+              className={isLoading ? styles.spinner : ''}
+            />
             Refresh
           </button>
         </div>
-      </div>
 
-      {/* Connection Status */}
-      {!isConnected && (
-        <div className={styles.warningMessage}>
-          <AlertCircle size={16} />
-          Please connect your wallet to view verification requests
-        </div>
-      )}
-
-      {/* Error Message */}
-      {error && (
-        <div className={styles.errorMessage}>
-          <AlertCircle size={16} />
-          {error}
-        </div>
-      )}
-
-      {/* Filters Section */}
-      <div className={styles.filtersSection}>
-        <div className={styles.searchBox}>
-          <Search size={16} />
-          <input
-            type="text"
-            placeholder="Search by student name, exam number, or school..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className={styles.searchInput}
-          />
-        </div>
-        
-        <div className={styles.filterGroup}>
-          <Filter size={16} />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className={styles.filterSelect}
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="verified">Verified</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Loading State */}
-      {isLoading && (
-        <div className={styles.loadingMessage}>
-          <RefreshCw size={16} className={styles.spinning} />
-          Loading verification requests...
-        </div>
-      )}
-
-      {/* Statistics Summary */}
-      {verificationRequests.length > 0 && !isLoading && (
-        <div className={styles.statsSummary}>
-          <div className={styles.statItem}>
-            <span className={styles.statNumber}>{verificationRequests.length}</span>
-            <span className={styles.statLabel}>Total Requests</span>
+        <div className={styles.filters}>
+          <div className={styles.searchBox}>
+            <Search size={16} className={styles.searchIcon} />
+            <input
+              type="text"
+              placeholder="Search by student name, exam number, or school…"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.searchInput}
+            />
           </div>
-          <div className={styles.statItem}>
-            <span className={styles.statNumber}>
-              {verificationRequests.filter(r => r.status === 'Verified').length}
-            </span>
-            <span className={styles.statLabel}>Verified</span>
-          </div>
-          <div className={styles.statItem}>
-            <span className={styles.statNumber}>
-              {verificationRequests.filter(r => r.status === 'Approved').length}
-            </span>
-            <span className={styles.statLabel}>Approved</span>
-          </div>
-          <div className={styles.statItem}>
-            <span className={styles.statNumber}>
-              {verificationRequests.filter(r => r.status === 'Pending').length}
-            </span>
-            <span className={styles.statLabel}>Pending</span>
+
+          <div className={styles.filterGroup}>
+            <Filter size={16} />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className={styles.filterSelect}
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="verified">Verified</option>
+            </select>
           </div>
         </div>
-      )}
 
-      {/* Verification Requests Table */}
-      <div className={styles.tableContainer}>
-        <table className={styles.dataTable}>
-          <thead>
-            <tr>
-              <th>Request ID</th>
-              <th>Student Name</th>
-              <th>Examination Number</th>
-              <th>School Name</th>
-              <th>Year</th>
-              <th>Status</th>
-              <th>Scan Count</th>
-              <th>Last Scanned</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredRequests.length > 0 ? (
-              filteredRequests.map((request) => (
-                <tr key={request.id}>
-                  <td>VR{String(request.id).padStart(3, '0')}</td>
-                  <td>{request.studentName}</td>
-                  <td className={styles.monoFont}>{request.examinationNumber}</td>
-                  <td>{request.schoolName}</td>
-                  <td>{request.yearOfExamination}</td>
-                  <td>
-                    <span className={getStatusBadgeStyle(request.status)}>
-                      {getStatusIcon(request.status)}
-                      {request.status}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={styles.scanCount}>
-                      {request.scanCount > 0 ? request.scanCount : 'Never'}
-                    </span>
-                  </td>
-                  <td>
-                    {request.lastScanned ? formatDate(request.lastScanned) : 'Never'}
-                  </td>
-                  <td>
-                    <button
-                      onClick={() => handleViewDetails(request)}
-                      className={styles.btnSmall}
-                      title="View details"
-                    >
-                      <Eye size={14} />
-                      View
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              !isLoading && (
+        {isLoading ? (
+          <div className={styles.loadingContainer}>
+            <RefreshCw size={20} className={styles.spinner} />
+            <span>Loading verification requests…</span>
+          </div>
+        ) : filteredRequests.length > 0 ? (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
                 <tr>
-                  <td colSpan="9" className={styles.noDataMessage}>
-                    {verificationRequests.length === 0 
-                      ? 'No verification requests found' 
-                      : 'No requests match your filters'
-                    }
-                  </td>
+                  <th>Request ID</th>
+                  <th>Student Name</th>
+                  <th>Exam Number</th>
+                  <th>School</th>
+                  <th>Year</th>
+                  <th>Status</th>
+                  <th>Scan Count</th>
+                  <th>Last Scanned</th>
+                  <th style={{ textAlign: 'right' }}>Action</th>
                 </tr>
-              )
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {filteredRequests.map((request) => (
+                  <tr key={request.id}>
+                    <td className={styles.mono}>
+                      VR{String(request.id).padStart(3, '0')}
+                    </td>
+                    <td>{request.studentName}</td>
+                    <td className={styles.mono}>
+                      {request.examinationNumber}
+                    </td>
+                    <td>{request.schoolName}</td>
+                    <td>{request.yearOfExamination}</td>
+                    <td>
+                      <span className={statusBadgeClass(request.status)}>
+                        {statusIcon(request.status)}
+                        {request.status}
+                      </span>
+                    </td>
+                    <td>
+                      {request.scanCount > 0 ? request.scanCount : 'Never'}
+                    </td>
+                    <td>
+                      {request.lastScanned
+                        ? formatDate(request.lastScanned)
+                        : 'Never'}
+                    </td>
+                    <td style={{ textAlign: 'right' }}>
+                      <button
+                        onClick={() => handleViewDetails(request)}
+                        className={styles.btnGhost}
+                        title="View details"
+                      >
+                        <Eye size={14} />
+                        View
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            <Inbox size={40} />
+            <p className={styles.emptyStateTitle}>
+              {verificationRequests.length === 0
+                ? 'No verification requests yet'
+                : 'No requests match your filters'}
+            </p>
+            <p className={styles.emptyStateText}>
+              {verificationRequests.length === 0
+                ? 'Requests will appear here once certificates are verified.'
+                : 'Try clearing the search or changing the status filter.'}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Details Modal */}
       {showDetailsModal && selectedRequest && (
-        <div className={styles.modalOverlay} onClick={() => setShowDetailsModal(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.overlayBackdrop}
+          onClick={() => setShowDetailsModal(false)}
+        >
+          <div
+            className={styles.modal}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.modalHeader}>
-              <h3>Verification Request Details</h3>
+              <div>
+                <div className={styles.subtle}>
+                  VR{String(selectedRequest.id).padStart(3, '0')}
+                </div>
+                <h2 className={styles.modalTitle}>
+                  Verification Request Details
+                </h2>
+              </div>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className={styles.modalCloseBtn}
+                className={styles.closeBtn}
+                aria-label="Close"
               >
-                ×
+                <X size={20} />
               </button>
             </div>
 
             <div className={styles.modalBody}>
-              <div className={styles.detailsGrid}>
-                <div className={styles.detailItem}>
-                  <label>Request ID:</label>
-                  <span>VR{String(selectedRequest.id).padStart(3, '0')}</span>
+              <div className={styles.infoGrid}>
+                <div>
+                  <div className={styles.metaLabel}>Student Name</div>
+                  <div className={styles.metaValue}>
+                    {selectedRequest.studentName}
+                  </div>
                 </div>
-
-                <div className={styles.detailItem}>
-                  <label>Student Name:</label>
-                  <span>{selectedRequest.studentName}</span>
+                <div>
+                  <div className={styles.metaLabel}>Examination Number</div>
+                  <div className={styles.metaValue}>
+                    {selectedRequest.examinationNumber}
+                  </div>
                 </div>
-
-                <div className={styles.detailItem}>
-                  <label>Examination Number:</label>
-                  <span className={styles.monoFont}>{selectedRequest.examinationNumber}</span>
+                <div>
+                  <div className={styles.metaLabel}>School Name</div>
+                  <div className={styles.metaValue}>
+                    {selectedRequest.schoolName}
+                  </div>
                 </div>
-
-                <div className={styles.detailItem}>
-                  <label>School Name:</label>
-                  <span>{selectedRequest.schoolName}</span>
+                <div>
+                  <div className={styles.metaLabel}>Year of Examination</div>
+                  <div className={styles.metaValue}>
+                    {selectedRequest.yearOfExamination}
+                  </div>
                 </div>
-
-                <div className={styles.detailItem}>
-                  <label>Year of Examination:</label>
-                  <span>{selectedRequest.yearOfExamination}</span>
+                <div>
+                  <div className={styles.metaLabel}>Status</div>
+                  <div className={styles.metaValue}>
+                    <span className={statusBadgeClass(selectedRequest.status)}>
+                      {statusIcon(selectedRequest.status)}
+                      {selectedRequest.status}
+                    </span>
+                  </div>
                 </div>
-
-                <div className={styles.detailItem}>
-                  <label>Status:</label>
-                  <span className={getStatusBadgeStyle(selectedRequest.status)}>
-                    {getStatusIcon(selectedRequest.status)}
-                    {selectedRequest.status}
-                  </span>
+                <div>
+                  <div className={styles.metaLabel}>Date of Approval</div>
+                  <div className={styles.metaValue}>
+                    {formatDate(selectedRequest.dateOfApproval)}
+                  </div>
                 </div>
-
-                <div className={styles.detailItem}>
-                  <label>Date of Approval:</label>
-                  <span>{formatDate(selectedRequest.dateOfApproval)}</span>
+                <div>
+                  <div className={styles.metaLabel}>Scan Count</div>
+                  <div className={styles.metaValue}>
+                    {selectedRequest.scanCount > 0
+                      ? selectedRequest.scanCount
+                      : 'Never scanned'}
+                  </div>
                 </div>
-
-                <div className={styles.detailItem}>
-                  <label>Scan Count:</label>
-                  <span className={styles.scanCount}>
-                    {selectedRequest.scanCount > 0 ? selectedRequest.scanCount : 'Never scanned'}
-                  </span>
+                <div>
+                  <div className={styles.metaLabel}>Last Scanned</div>
+                  <div className={styles.metaValue}>
+                    {formatDate(selectedRequest.lastScanned)}
+                  </div>
                 </div>
-
-                <div className={styles.detailItem}>
-                  <label>Last Scanned:</label>
-                  <span>{formatDate(selectedRequest.lastScanned)}</span>
+                <div>
+                  <div className={styles.metaLabel}>Verified By</div>
+                  <div className={styles.metaValue}>
+                    {selectedRequest.verifiedBy || 'Not verified yet'}
+                  </div>
                 </div>
-
-                <div className={styles.detailItem}>
-                  <label>Verified By:</label>
-                  <span>{selectedRequest.verifiedBy || 'Not verified yet'}</span>
-                </div>
-
-                <div className={styles.detailItem}>
-                  <label>Verification Date:</label>
-                  <span>{formatDate(selectedRequest.verificationDate)}</span>
+                <div>
+                  <div className={styles.metaLabel}>Verification Date</div>
+                  <div className={styles.metaValue}>
+                    {formatDate(selectedRequest.verificationDate)}
+                  </div>
                 </div>
               </div>
             </div>
@@ -415,7 +449,7 @@ const VerificationRequests = () => {
             <div className={styles.modalFooter}>
               <button
                 onClick={() => setShowDetailsModal(false)}
-                className={styles.btnSecondary}
+                className={styles.btnGhost}
               >
                 Close
               </button>
