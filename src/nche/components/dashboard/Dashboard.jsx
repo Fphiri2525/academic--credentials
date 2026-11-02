@@ -89,7 +89,7 @@ export default function Dashboard({
   };
 
   const statCards = [
-    { label: 'Accredited universities', value: stats.accredited,         color: 'var(--accent)',  icon: School,        onClick: () => go('stock') },
+    { label: 'Accredited universities', value: stats.accredited,         color: 'var(--accent)',  icon: School,        onClick: () => go('universities') },
     { label: 'Suspended universities',  value: stats.suspended,          color: 'var(--warning)', icon: University,    onClick: () => go('suspensions') },
     { label: 'Approved programs',       value: stats.programs,           color: 'var(--accent)',  icon: GraduationCap, onClick: () => go('programs') },
     { label: 'Graduates registered',    value: stats.graduates,          color: 'var(--accent)',  icon: Award },

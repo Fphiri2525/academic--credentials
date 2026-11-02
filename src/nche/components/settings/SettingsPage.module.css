@@ -1,0 +1,222 @@
+.container { display: flex; flex-direction: column; gap: 20px; color: var(--text); }
+
+.intro { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.title { font-size: 1.4rem; font-weight: 600; margin: 0 0 4px; letter-spacing: -.01em; }
+.subtitle { margin: 0; color: var(--text-muted); font-size: .9rem; }
+
+/* Two-column layout: tabs + panel */
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Sidebar tabs */
+.tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  position: sticky;
+  top: 88px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: .875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background .15s ease, color .15s ease;
+}
+.tab:hover { background: var(--hover); color: var(--text); }
+.tabActive { background: var(--accent-soft); color: var(--accent); }
+.tabActive:hover { background: var(--accent-soft); color: var(--accent); }
+
+/* Panel */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 32px;
+  min-height: 400px;
+}
+
+/* Form */
+.form { display: flex; flex-direction: column; gap: 28px; }
+
+.sectionHeader { display: flex; flex-direction: column; gap: 4px; }
+.sectionTitle { font-size: 1.1rem; font-weight: 600; margin: 0; color: var(--text); }
+.sectionDesc { margin: 0; font-size: .85rem; color: var(--text-muted); }
+
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.fieldFull { grid-column: 1 / -1; }
+
+.label {
+  font-size: .8rem;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: .01em;
+}
+
+.hint {
+  font-size: .75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: .9rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: inherit;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.input:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+  background: var(--hover);
+}
+
+select.input { cursor: pointer; appearance: none; }
+
+/* Password field with eye toggle */
+.inputWrap { position: relative; }
+.inputWrap .input { padding-right: 42px; }
+.inputAction {
+  position: absolute;
+  right: 8px; top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.inputAction:hover { background: var(--hover); color: var(--text); }
+
+/* Toggles */
+.toggles { display: flex; flex-direction: column; gap: 4px; }
+
+.toggleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.toggleTitle { font-size: .9rem; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+
+.toggle {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  border: none;
+  background: var(--border);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background .2s ease;
+}
+.toggle.toggleOn { background: var(--accent); }
+
+.toggleDot {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .2);
+  transition: transform .2s ease;
+}
+.toggle.toggleOn .toggleDot { transform: translateX(20px); }
+
+/* Actions */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.btnPrimary {
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: .875rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all .15s ease;
+}
+.btnPrimary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+.btnPrimary:disabled { opacity: .6; cursor: not-allowed; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tabs {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 6px;
+    gap: 2px;
+  }
+
+  .tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 8px 12px;
+    font-size: .8rem;
+  }
+
+  .panel { padding: 20px; }
+
+  .grid2 { grid-template-columns: 1fr; }
+  .toggleRow { flex-direction: column; align-items: flex-start; gap: 12px; }
+}

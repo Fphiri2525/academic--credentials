@@ -6,22 +6,25 @@ import Sidebar  from './components/layout/Sidebar'
 import Header from './components/layout/Header';
 import Notification from './components/layout/Notification';
 import LogoutModal from './components/layout/LogoutModal';
-import PageStub from './components/layout/PageStub';
+
 
 // Hooks
 import { useNotification } from './hooks/useNotification';
 import { useUser } from './hooks/useUser';
 
-// Existing page components (still in src/Components)
 import Dashboard from './components/dashboard/Dashboard';
-import Stock from '../Components/Stock';
-import Staff from '../Components/Staff';
-import Report from '../Components/Report';
-import Reports from '../Components/Reports';
+import UniversitiesPage from './components/universities/UniversitiesPage';
+import ProgramsPage from './components/programs/ProgramsPage';
+import SuspensionsPage from './components/suspensions/SuspensionsPage';
+import ForeignApplicationsPage from './components/foreign_applications/ForeignApplicationsPage';
+import ReportsPage from './components/reports/ReportsPage';
+import AuditLogsPage from './components/audit/AuditLogsPage';
+import SettingsPage from './components/settings/SettingsPage';
 import Users from '../Components/Users';
 import Login from '../Login';
 
 import styles from './style/Homepage.module.css';
+import ReportPage from '../MANEB3/Reports';
 
 const PENDING_COUNT = 5;
 
@@ -85,16 +88,16 @@ export default function Homepage({ onLogout }) {
         isLoadingUserName={loadingUser}
       />
     ),
-    stock:        <Stock {...common} />,
-    programs:     <Staff {...common} />,
-    suspensions:  <PageStub title="Suspensions" description="List of suspended universities with reason, date, and a Reinstate action. Populate from the universities table where accreditation_status = 'SUSPENDED'." />,
-    foreign:      <PageStub title="Foreign Applications" description="Review applicant details, documents, status history, and Approve / Reject / Request info. Quick actions are available on the dashboard." />,
-    certificates: <Reports {...common} />,
-    report:       <Report {...common} />,
-    audit:        <PageStub title="Audit Logs" description="Every important action: actor, change, and timestamp. Populate from the audit_logs table with filters for user, action, and date." />,
+    universities:    <UniversitiesPage {...common} />,
+    programs:     <ProgramsPage {...common} />,
+    suspensions: <SuspensionsPage {...common} />,
+    foreign:     <ForeignApplicationsPage {...common} />,
+    certificates: <ReportsPage {...common} />,
+    report:       <ReportPage {...common} />,
+    audit:         <AuditLogsPage {...common} />,
     users:        <Users {...common} />,
-    settings:     <PageStub title="Settings" description="Profile, password change, blockchain network settings, and system preferences." />,
-    reports:      <Reports {...common} />,
+    settings:     <SettingsPage {...common} />,
+    reports:      <ReportsPage {...common} />,
     login:        <Login isDark={isDark} />,
   };
 
@@ -150,3 +153,4 @@ export default function Homepage({ onLogout }) {
     </div>
   );
 }
+

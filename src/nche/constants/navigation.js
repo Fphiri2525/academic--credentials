@@ -5,7 +5,7 @@ import {
 
 export const NAV_ITEMS = [
   { title: 'Dashboard',            view: 'homepage',     Icon: LayoutDashboard },
-  { title: 'Universities',         view: 'stock',        Icon: GraduationCap },
+  { title: 'Universities',         view: 'universities',        Icon: GraduationCap },
   { title: 'Accredited Programs',  view: 'programs',     Icon: BookOpen },
   { title: 'Suspensions',          view: 'suspensions',  Icon: Ban },
   { title: 'Foreign Applications', view: 'foreign',      Icon: Globe },
