@@ -21,7 +21,7 @@ import ReportsPage from './components/reports/ReportsPage';
 import AuditLogsPage from './components/audit/AuditLogsPage';
 import SettingsPage from './components/settings/SettingsPage';
 import Users from '../Components/Users';
-import Login from '../Login';
+import LandingPage from '../LandingPage';
 
 import styles from './style/Homepage.module.css';
 import ReportPage from '../MANEB3/Reports';
@@ -98,7 +98,7 @@ export default function Homepage({ onLogout }) {
     users:        <Users {...common} />,
     settings:     <SettingsPage {...common} />,
     reports:      <ReportsPage {...common} />,
-    login:        <Login isDark={isDark} />,
+    login:        <LandingPage isDark={isDark} />,
   };
 
   return (

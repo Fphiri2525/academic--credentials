@@ -1,62 +1,50 @@
-/* dashboard.module.css */
+
+
 .dashboardContainer {
-  min-height: 100vh;
-  background: #ffffff;
-  padding: 24px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  color: var(--text);
+  width: 100%;
 }
 
-.darkTheme {
-  background: #ffffff;
-}
-
-.lightTheme {
-  background: #ffffff;
-}
-
-/* Header Styles */
 .dashboardHeader {
-  margin-bottom: 32px;
-  border-bottom: 1px solid #f0f0f0;
-  padding-bottom: 24px;
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 
-.dashboardTitle {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin: 0 0 8px 0;
-  letter-spacing: -0.02em;
+.mainTitle {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--text);
 }
 
 .dashboardSubtitle {
-  font-size: 16px;
-  color: #666666;
-  margin: 0;
-  font-weight: 400;
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
-/* Dashboard Grid */
 .dashboardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
 }
 
 .dashboardCard {
-  background: #ffffff;
-  border: 1px solid #f0f0f0;
-  border-radius: 12px;
-  padding: 24px;
-  transition: all 0.2s ease-in-out;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-.dashboardCard:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transform: translateY(-1px);
-  border-color: #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .clickableCard {
@@ -64,7 +52,8 @@
 }
 
 .clickableCard:hover {
-  border-color: #2563eb;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .dashboardCardContent {
@@ -77,136 +66,121 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: #f8f9fa;
+  width: 44px;
+  height: 44px;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
-  border: 1px solid #f0f0f0;
+  flex-shrink: 0;
 }
 
 .cardInfo {
   flex: 1;
+  min-width: 0;
 }
 
 .dashboardTitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: #666666;
-  margin: 0 0 4px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin: 0 0 6px 0;
+  text-transform: none;
+  letter-spacing: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .dashboardValue {
-  font-size: 28px;
+  font-size: 2rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text);
   margin: 0;
   letter-spacing: -0.02em;
+  line-height: 1;
 }
 
-.darkText {
-  color: #1a1a1a;
+.skeletonText {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
-/* Analytics Section */
-.analyticsSection {
-  margin-bottom: 32px;
+
+
+.grid2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 24px;
 }
+
+@media (max-width: 1024px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+
 
 .card {
-  background: #ffffff;
-  border: 1px solid #f0f0f0;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-}
-
-.analyticsCard {
-  margin-bottom: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  color: var(--text);
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .cardHeader {
-  padding: 24px 24px 0;
-  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .cardTitle {
-  font-size: 18px;
+  font-size: 1.15rem;
   font-weight: 600;
-  color: #1a1a1a;
   margin: 0;
+  color: var(--text);
+  letter-spacing: 0.01em;
 }
 
-.cardContent {
-  padding: 0 24px 24px;
+.cardSub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 4px 0 0;
+  line-height: 1.4;
 }
+
 
 .analyticsGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 32px;
-  align-items: center;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
+  gap: 20px;
+  align-items: stretch;
 }
 
-.analyticsItem {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px;
-  background: #fafafa;
-  border-radius: 8px;
-  border: 1px solid #f0f0f0;
+@media (max-width: 640px) {
+  .analyticsGrid {
+    grid-template-columns: 1fr;
+  }
 }
 
-.analyticsIcon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #f0f0f0;
-}
-
-.iconDigitalGenerated {
-  color: #10b981;
-}
-
-.iconDigitalNotGenerated {
-  color: #f59e0b;
-}
-
-.analyticsData h4 {
-  font-size: 14px;
-  font-weight: 600;
-  color: #666666;
-  margin: 0 0 8px 0;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-.analyticsValue {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin: 0 0 4px 0;
-}
-
-.analyticsDescription {
-  font-size: 12px;
-  color: #999999;
-  margin: 0;
-  font-weight: 400;
-}
-
-/* Pie Chart Styles */
 .pieChartContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 20px;
+  padding: 24px;
+  background: var(--bg);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  box-sizing: border-box;
 }
 
 .pieChart {
@@ -214,238 +188,284 @@
   height: 140px;
   border-radius: 50%;
   position: relative;
-  background: #f0f0f0;
+  flex-shrink: 0;
 }
 
 .chartSegment {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chartCenter {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80px;
-  height: 80px;
-  background: #ffffff;
+  width: 88px;
+  height: 88px;
+  background: var(--surface);
   border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .chartPercentage {
-  font-size: 16px;
+  font-size: 1.25rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text);
   line-height: 1;
 }
 
 .chartLabel {
-  font-size: 10px;
-  color: #666666;
-  margin-top: 2px;
-  font-weight: 500;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .chartLegend {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .legendItem {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12px;
-  color: #666666;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
 }
 
 .legendColorGenerated {
   width: 12px;
   height: 12px;
-  border-radius: 2px;
+  border-radius: 3px;
   background: #10b981;
+  flex-shrink: 0;
 }
 
 .legendColorNotGenerated {
   width: 12px;
   height: 12px;
-  border-radius: 2px;
+  border-radius: 3px;
   background: #f59e0b;
+  flex-shrink: 0;
 }
 
-/* Activity Section */
-.activitySection {
-  margin-bottom: 32px;
+
+.analyticsStats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.activityCard {
-  margin-bottom: 0;
+.analyticsItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: var(--bg);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-left-width: 3px;
+  flex: 1;
+  box-sizing: border-box;
 }
+
+.analyticsItemSuccess {
+  border-left-color: var(--success);
+}
+
+.analyticsItemWarning {
+  border-left-color: var(--warning);
+}
+
+.analyticsIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.iconGeneratedBg {
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.iconNotGeneratedBg {
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.analyticsData h4 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.analyticsValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.analyticsDescription {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.4;
+}
+
 
 .viewAllBtn {
-  background: none;
-  border: 1px solid #e0e0e0;
-  color: #666666;
-  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 7px 14px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
 .viewAllBtn:hover {
-  background: #fafafa;
-  border-color: #d0d0d0;
+  background: var(--hover);
+  color: var(--text);
 }
 
+
 .activityList {
-  padding: 8px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .activityItem {
   display: flex;
   gap: 16px;
-  padding: 16px 0;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+
+.activityItem:first-child {
+  border-top: none;
+  padding-top: 0;
 }
 
 .activityItem:last-child {
-  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .activityIndicator {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 20px;
+  width: 16px;
+  padding-top: 6px;
+  flex-shrink: 0;
 }
 
 .activityDot {
   width: 8px;
   height: 8px;
-  background: #10b981;
+  background: var(--accent);
   border-radius: 50%;
-  border: 2px solid #ffffff;
-  box-shadow: 0 0 0 2px #10b981;
+  flex-shrink: 0;
 }
 
 .activityLine {
   width: 2px;
   flex: 1;
-  background: #f0f0f0;
+  background: var(--border);
   margin-top: 8px;
 }
 
 .activityContent {
   flex: 1;
+  padding-bottom: 4px;
+  min-width: 0;
 }
 
 .activityText {
-  font-size: 14px;
-  color: #1a1a1a;
+  font-size: 0.95rem;
+  color: var(--text);
   margin: 0 0 4px 0;
   font-weight: 500;
+  line-height: 1.4;
 }
 
 .activityTime {
-  font-size: 12px;
-  color: #999999;
+  font-size: 0.8rem;
+  color: var(--text-muted);
   margin: 0;
-  font-weight: 400;
 }
 
-/* Empty State */
+
 .emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 48px 24px;
+  padding: 60px 20px;
+  color: var(--text-muted);
+  gap: 10px;
 }
 
 .emptyStateText {
-  font-size: 16px;
-  color: #666666;
-  margin: 0 0 8px 0;
-  font-weight: 500;
+  font-size: 1rem;
+  color: var(--text);
+  margin: 0;
+  font-weight: 600;
 }
 
 .emptyStateSubtext {
-  font-size: 14px;
-  color: #999999;
+  font-size: 0.9rem;
+  color: var(--text-muted);
   margin: 0;
-  font-weight: 400;
+  line-height: 1.5;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .analyticsGrid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
-  .pieChartContainer {
-    grid-column: 1;
-    justify-content: center;
-  }
-}
 
 @media (max-width: 768px) {
-  .dashboardContainer {
-    padding: 16px;
+  .mainTitle {
+    font-size: 1.4rem;
   }
-  
+
   .dashboardGrid {
     grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  
-  .dashboardCard {
-    padding: 20px;
-  }
-  
-  .cardHeader {
-    padding: 20px 20px 0;
-  }
-  
-  .cardContent {
-    padding: 0 20px 20px;
-  }
-  
-  .analyticsItem {
-    flex-direction: column;
-    text-align: center;
     gap: 12px;
   }
-}
 
-@media (max-width: 480px) {
-  .dashboardTitle {
-    font-size: 24px;
+  .card {
+    padding: 20px;
   }
-  
+
   .dashboardValue {
-    font-size: 24px;
+    font-size: 1.75rem;
   }
-  
+
   .analyticsValue {
-    font-size: 20px;
-  }
-  
-  .pieChart {
-    width: 120px;
-    height: 120px;
-  }
-  
-  .chartCenter {
-    width: 70px;
-    height: 70px;
+    font-size: 1.3rem;
   }
 }
