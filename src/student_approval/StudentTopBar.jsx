@@ -1,87 +1,81 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { GraduationCap, X } from 'lucide-react';
-import styles from './student.module.css';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { GraduationCap, LogOut, X } from 'lucide-react';
+import styles from './Student.module.css';
 
-const StudentTopBar = ({ onReset, showResetButton = false }) => {
+export default function StudentTopBar({
+  userName,
+  loadingUser,
+  onReset,
+  showReset = false,
+  onLogout,
+}) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  // Background slideshow images (same as main Student page)
-  const slideImages = [
-    {
-      url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-      title: 'Academic Excellence',
-      subtitle: 'Secure your achievements with blockchain technology'
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-      title: 'Digital Certificates',
-      subtitle: 'Tamper-proof verification for your credentials'
-    },
-    {
-      url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-      title: 'Trusted Verification',
-      subtitle: 'Your achievements, secured and verified for life'
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false);
+    if (onLogout) {
+      onLogout();
+    } else {
+      localStorage.removeItem('user');
+      localStorage.removeItem('isLoggedIn');
+      navigate('/login');
     }
-  ];
-
-  // Auto-advance slideshow
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slideImages.length);
-    }, 5000);
-
-    return () => clearInterval(timer);
-  }, [slideImages.length]);
-
-  // Handle scroll events for header styling
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      setIsScrolled(scrollTop > 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  };
 
   return (
     <>
-      {/* Background Slideshow */}
-      <div className={styles.backgroundSlideshow}>
-        {slideImages.map((slide, index) => (
-          <div
-            key={index}
-            className={`${styles.backgroundSlide} ${index === currentSlide ? styles.active : ''}`}
-            style={{ backgroundImage: `url(${slide.url})` }}
-          />
-        ))}
-      </div>
-
       <header className={styles.header}>
-        <div className={styles.headerContent}>
-          <div className={styles.logo}>
-            <GraduationCap className={styles.logoIcon} />
-            <h1 className={styles.title}>Student Digital Certificate Portal</h1>
+        <div className={styles.headerInner}>
+          <div className={styles.brand}>
+            <GraduationCap size={24} className={styles.brandIcon} />
+            <h1 className={styles.brandName}>Student Portal</h1>
           </div>
 
-          {/* Reset/Clear Button */}
-          {showResetButton && onReset && (
+          <div className={styles.headerActions}>
+            <div className={styles.userPill}>
+              <span className={styles.userName}>
+                {loadingUser ? 'Loading…' : userName || 'Student'}
+              </span>
+              <span className={styles.userRole}>Student</span>
+            </div>
+
+            {showReset && onReset && (
+              <button className={styles.iconBtn} onClick={onReset} title="Start over">
+                <X size={18} />
+              </button>
+            )}
+
             <button
-              onClick={onReset}
-              className={styles.cancelButton}
-              title="Clear everything and start over"
+              className={styles.logoutBtn}
+              onClick={() => setShowLogoutConfirm(true)}
+              title="Logout"
             >
-              <X size={24} />
+              <LogOut size={16} /> Logout
             </button>
-          )}
+          </div>
         </div>
       </header>
+
+      {showLogoutConfirm && (
+        <div className={styles.overlay} onClick={() => setShowLogoutConfirm(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.modalTitle}>Confirm logout</h3>
+            <p className={styles.modalText}>
+              You will need to log in again to access the student portal.
+            </p>
+            <div className={styles.modalActions}>
+              <button className={styles.btnGhost} onClick={() => setShowLogoutConfirm(false)}>
+                Cancel
+              </button>
+              <button className={styles.btnDanger} onClick={confirmLogout}>
+                <LogOut size={14} /> Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
-};
-
-export default StudentTopBar;
+}

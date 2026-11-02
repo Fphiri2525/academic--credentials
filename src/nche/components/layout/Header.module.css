@@ -10,6 +10,7 @@
   padding: 0 24px;
   z-index: 90;
   transition: left .25s ease, width .25s ease;
+  box-sizing: border-box; /* <--- ADD THIS */
 }
 
 .left { display: flex; align-items: center; gap: 20px; flex: 1; }
