@@ -1,0 +1,130 @@
+﻿.header {
+  position: fixed;
+  top: 0;
+  height: 72px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 90;
+  transition: left .25s ease, width .25s ease;
+}
+
+.left { display: flex; align-items: center; gap: 20px; flex: 1; }
+
+.menuBtn {
+  background: var(--accent);
+  border: none;
+  width: 40px; 
+  height: 40px;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  transition: background .15s ease;
+}
+.menuBtn:hover { background: var(--accent-hover); }
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  max-width: 420px;
+  flex: 1;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.searchIcon { color: var(--text-muted); flex-shrink: 0; }
+.searchInput {
+  border: none; 
+  outline: none; 
+  background: transparent;
+  width: 100%; 
+  font-size: .95rem; 
+  color: var(--text);
+}
+
+.right { display: flex; align-items: center; gap: 12px; }
+
+.iconBtn {
+  position: relative;
+  width: 40px; 
+  height: 40px;
+  background: none; 
+  border: none; 
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
+  transition: background .15s ease, color .15s ease;
+}
+.iconBtn:hover { background: var(--hover); color: var(--text); }
+
+.badge {
+  position: absolute; top: 4px; right: 4px;
+  background: var(--danger);
+  color: #fff; font-size: 11px; font-weight: 700;
+  min-width: 18px; height: 18px;
+  border-radius: 999px;
+  display: grid; place-items: center;
+  padding: 0 4px;
+  border: 2px solid var(--surface); /* Adds a nice cutout effect */
+}
+
+.profile { position: relative; }
+.profileBtn {
+  display: flex; align-items: center; gap: 12px;
+  background: none; border: none; cursor: pointer;
+  padding: 6px 10px; border-radius: 8px;
+  color: var(--text-muted);
+  transition: background .15s ease;
+}
+.profileBtn:hover { background: var(--hover); }
+
+.profileMeta { display: flex; flex-direction: column; align-items: flex-start; }
+.profileName { font-size: .95rem; font-weight: 600; color: var(--text); }
+.profileRole { font-size: .8rem; color: var(--text-muted); }
+
+.menu {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  width: 240px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.menuHeader {
+  display: flex; flex-direction: column; gap: 4px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.menuHeader strong { color: var(--text); font-size: 1rem; }
+.menuHeader span { color: var(--text-muted); font-size: .85rem; }
+
+.logoutBtn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px;
+  background: var(--danger);
+  color: #fff;
+  border: none; border-radius: 6px;
+  font-size: .9rem; font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+.logoutBtn:hover { background: var(--danger-hover); }

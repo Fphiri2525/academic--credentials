@@ -1,0 +1,61 @@
+﻿.app,
+.app.dark-theme {
+  --accent:       #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft:  rgba(37, 99, 235, .10);
+  --danger:       #dc2626;
+  --danger-hover: #b91c1c;
+  --success:      #059669;
+  --warning:      #d97706;
+}
+
+/* Light */
+.app {
+  --bg:      #f8fafc;
+  --surface: #ffffff;
+  --border:  #e5e7eb;
+  --text:    #0f172a;
+  --text-muted: #64748b;
+  --hover:   #f1f5f9;
+  --shadow:  0 1px 2px rgba(15,23,42,.04), 0 4px 12px rgba(15,23,42,.06);
+}
+
+/* Dark */
+.app.dark-theme {
+  --bg:      #0f172a;
+  --surface: #1e293b;
+  --border:  #334155;
+  --text:    #f1f5f9;
+  --text-muted: #94a3b8;
+  --hover:   #334155;
+  --accent-soft: rgba(59, 130, 246, .18);
+  --shadow:  0 1px 2px rgba(0,0,0,.3), 0 4px 12px rgba(0,0,0,.3);
+}
+
+/* ===== Layout ===== */
+.app {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
+}
+
+.main {
+  min-height: 100vh;
+  transition: margin-left .25s ease;
+}
+
+.content {
+  padding: 88px 24px 24px;   /* 64px header + 24px gap */
+}
+
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(15, 23, 42, .5);
+  z-index: 95;
+}
+
+@media (max-width: 768px) {
+  .content { padding: 88px 16px 16px; }
+}

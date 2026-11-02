@@ -1,687 +1,175 @@
-/* CertificateGenerator.module.css */
+/* ===== Modal chrome (replaces old modal/header/actionButtons) ===== */
 
 .modal {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  inset: 0;
+  background: rgba(15, 23, 42, .55);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 20px;
-}
-
-.modal.darkMode {
-  background-color: rgba(0, 0, 0, 0.9);
+  padding: 24px;
 }
 
 .modalContent {
-  background: white;
+  background: var(--surface);
   border-radius: 12px;
   width: 95%;
   max-width: 1200px;
   max-height: 95vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .25), 0 0 0 1px var(--border);
   display: flex;
   flex-direction: column;
+  animation: modalIn .25s cubic-bezier(.16, 1, .3, 1);
 }
 
-.modal.darkMode .modalContent {
-  background: #1a1a1a;
-  color: white;
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(.96) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 30px;
-  border-bottom: 1px solid #e0e0e0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.modal.darkMode .header {
-  border-bottom-color: #333;
-  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .header h2 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.15rem;
   font-weight: 600;
+  color: var(--text);
 }
 
 .closeButton {
-  background: rgba(255, 255, 255, 0.2);
+  background: transparent;
   border: none;
-  color: white;
-  font-size: 24px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  color: var(--text-muted);
+  font-size: 22px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
+  transition: background .15s ease, color .15s ease;
 }
 
 .closeButton:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: scale(1.1);
+  background: var(--hover);
+  color: var(--text);
 }
 
+/* Certificate area stays light — it's a printable document */
 .certificateContainer {
-  padding: 30px;
+  padding: 24px;
   display: flex;
   justify-content: center;
   align-items: center;
   flex: 1;
-  background: #f8f9fa;
+  background: var(--bg);
 }
 
-.modal.darkMode .certificateContainer {
-  background: #2d3748;
-}
-
-.certificate {
-  width: 100%;
-  max-width: 1000px;
-  min-height: 700px;
-  position: relative;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.certificateBorder {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  padding: 40px;
-  border: 20px solid transparent;
-  background: white;
-}
-
-/* Base Certificate Theme - Default */
-.themeDefault .certificateBorder {
-  border-image: linear-gradient(45deg, #667eea, #764ba2) 1;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-}
-
-.themeDefault .certificateHeader {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-/* University of Malawi (UNIMA) Theme - Blue and Gold */
-.themeUnima .certificateBorder {
-  border-image: linear-gradient(45deg, #0033a0, #ffd700) 1;
-  background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(0, 51, 160, 0.05) 0%, transparent 20%),
-    radial-gradient(circle at 90% 80%, rgba(255, 215, 0, 0.05) 0%, transparent 20%);
-}
-
-.themeUnima .certificateHeader {
-  background: linear-gradient(135deg, #0033a0 0%, #0047ab 50%, #0056b3 100%);
-  color: white;
-  position: relative;
-  overflow: hidden;
-}
-
-.themeUnima .certificateHeader::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #ffd700, #ffed4e, #ffd700);
-}
-
-/* MUBAS Theme - Green and White */
-.themeMubas .certificateBorder {
-  border-image: linear-gradient(45deg, #2e7d32, #4caf50) 1;
-  background: linear-gradient(135deg, #f1f8e9 0%, #e8f5e8 100%);
-  background-image: 
-    repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(46, 125, 50, 0.03) 10px, rgba(46, 125, 50, 0.03) 20px);
-}
-
-.themeMubas .certificateHeader {
-  background: linear-gradient(135deg, #2e7d32 0%, #388e3c 50%, #43a047 100%);
-  color: white;
-}
-
-/* MUST Theme - Red and Black */
-.themeMust .certificateBorder {
-  border-image: linear-gradient(45deg, #d32f2f, #b71c1c) 1;
-  background: linear-gradient(135deg, #ffebee 0%, #fce4ec 100%);
-  background-image: 
-    radial-gradient(circle at 20% 80%, rgba(211, 47, 47, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(183, 28, 28, 0.1) 0%, transparent 50%);
-}
-
-.themeMust .certificateHeader {
-  background: linear-gradient(135deg, #d32f2f 0%, #c62828 50%, #b71c1c 100%);
-  color: white;
-}
-
-/* LUANAR Theme - Green and Gold */
-.themeLuanar .certificateBorder {
-  border-image: linear-gradient(45deg, #1b5e20, #ffab00) 1;
-  background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
-  background-image: 
-    linear-gradient(45deg, transparent 49%, rgba(27, 94, 32, 0.03) 49%, rgba(27, 94, 32, 0.03) 51%, transparent 51%),
-    linear-gradient(-45deg, transparent 49%, rgba(255, 171, 0, 0.03) 49%, rgba(255, 171, 0, 0.03) 51%, transparent 51%);
-  background-size: 20px 20px;
-}
-
-.themeLuanar .certificateHeader {
-  background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #388e3c 100%);
-  color: white;
-  position: relative;
-}
-
-.themeLuanar .certificateHeader::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #ffab00, #ffd54f, #ffab00);
-}
-
-/* MZUNI Theme - Blue and Green */
-.themeMzuni .certificateBorder {
-  border-image: linear-gradient(45deg, #00695c, #004d40) 1;
-  background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 100%);
-  background-image: 
-    radial-gradient(circle at 50% 50%, rgba(0, 105, 92, 0.05) 0%, transparent 50%);
-}
-
-.themeMzuni .certificateHeader {
-  background: linear-gradient(135deg, #00695c 0%, #00796b 50%, #00897b 100%);
-  color: white;
-}
-
-/* Catholic University Theme - Purple and Gold */
-.themeCatholic .certificateBorder {
-  border-image: linear-gradient(45deg, #6a1b9a, #ff6f00) 1;
-  background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
-  background-image: 
-    linear-gradient(30deg, rgba(106, 27, 154, 0.05) 0%, transparent 50%),
-    linear-gradient(-30deg, rgba(255, 111, 0, 0.05) 0%, transparent 50%);
-}
-
-.themeCatholic .certificateHeader {
-  background: linear-gradient(135deg, #6a1b9a 0%, #7b1fa2 50%, #8e24aa 100%);
-  color: white;
-  position: relative;
-}
-
-.themeCatholic .certificateHeader::before {
-  content: "✝";
-  position: absolute;
-  top: 50%;
-  right: 30px;
-  transform: translateY(-50%);
-  font-size: 2rem;
-  opacity: 0.3;
-}
-
-/* Certificate Header Styles */
-.certificateHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 30px 40px;
-  border-radius: 8px 8px 0 0;
-  margin: -40px -40px 40px -40px;
-  position: relative;
-}
-
-.universitySeal {
-  flex: 0 0 auto;
-}
-
-.sealCircle {
-  width: 80px;
-  height: 80px;
-  border: 3px solid rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.sealText {
-  font-size: 12px;
-  font-weight: bold;
-  color: rgba(255, 255, 255, 0.9);
-  text-align: center;
-}
-
-.universityInfo {
-  flex: 1;
-  text-align: center;
-  padding: 0 20px;
-}
-
-.universityName {
-  font-size: 2.2rem;
-  font-weight: bold;
-  margin: 0 0 8px 0;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  letter-spacing: 1px;
-}
-
-.universitySubtitle {
-  font-size: 1.1rem;
-  margin: 0;
-  opacity: 0.9;
-  font-weight: 300;
-  letter-spacing: 2px;
-}
-
-.certificateNumber {
-  flex: 0 0 auto;
-  text-align: right;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 10px 15px;
-  border-radius: 6px;
-  backdrop-filter: blur(10px);
-}
-
-.certNumberLabel {
-  display: block;
-  font-size: 0.9rem;
-  opacity: 0.9;
-  margin-bottom: 4px;
-}
-
-.certNumber {
-  font-size: 1.1rem;
-  font-weight: bold;
-  font-family: 'Courier New', monospace;
-}
-
-/* Certificate Content Styles */
-.certificateContent {
-  text-align: center;
-  padding: 20px 0;
-}
-
-.thisIsToCertify {
-  font-size: 1.3rem;
-  margin-bottom: 30px;
-  color: #555;
-  font-style: italic;
-}
-
-.modal.darkMode .thisIsToCertify {
-  color: #ccc;
-}
-
-.studentName {
-  margin: 40px 0;
-  padding: 20px 0;
-  border-top: 2px solid rgba(0, 0, 0, 0.1);
-  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-}
-
-.modal.darkMode .studentName {
-  border-top-color: rgba(255, 255, 255, 0.2);
-  border-bottom-color: rgba(255, 255, 255, 0.2);
-}
-
-.studentName h2 {
-  font-size: 2.8rem;
-  font-weight: 300;
-  margin: 0;
-  color: #2c3e50;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-}
-
-.modal.darkMode .studentName h2 {
-  color: white;
-}
-
-.programDetails {
-  font-size: 1.2rem;
-  line-height: 1.8;
-  margin-bottom: 40px;
-  color: #555;
-}
-
-.modal.darkMode .programDetails {
-  color: #ccc;
-}
-
-.programName, .awardDegree {
-  margin: 20px 0;
-  padding: 15px;
-  background: rgba(0, 0, 0, 0.03);
-  border-radius: 8px;
-  display: inline-block;
-}
-
-.modal.darkMode .programName,
-.modal.darkMode .awardDegree {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.programName strong, .awardDegree strong {
-  font-size: 1.4rem;
-  color: #2c3e50;
-  font-weight: 600;
-}
-
-.modal.darkMode .programName strong,
-.modal.darkMode .awardDegree strong {
-  color: white;
-}
-
-/* QR Code Section */
-.qrCodeSection {
-  margin: 40px 0;
-  display: flex;
-  justify-content: center;
-}
-
-.qrCodeContainer {
-  text-align: center;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.02);
-  border-radius: 12px;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.modal.darkMode .qrCodeContainer {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.qrCode {
-  width: 120px;
-  height: 120px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 8px;
-  background: white;
-}
-
-.qrCodeLabel {
-  font-weight: bold;
-  margin: 10px 0 5px 0;
-  color: #2c3e50;
-}
-
-.modal.darkMode .qrCodeLabel {
-  color: white;
-}
-
-.qrCodeSubLabel {
-  font-size: 0.9rem;
-  color: #666;
-  margin: 0;
-}
-
-.modal.darkMode .qrCodeSubLabel {
-  color: #aaa;
-}
-
-.qrCodeLoading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 30px;
-}
-
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Signatures Section */
-.signaturesSection {
-  display: flex;
-  justify-content: space-around;
-  margin: 60px 0 40px 0;
-  padding-top: 40px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.modal.darkMode .signaturesSection {
-  border-top-color: rgba(255, 255, 255, 0.2);
-}
-
-.signature {
-  text-align: center;
-}
-
-.signatureLine {
-  width: 200px;
-  height: 1px;
-  background: #333;
-  margin: 0 auto 10px auto;
-  position: relative;
-}
-
-.modal.darkMode .signatureLine {
-  background: #fff;
-}
-
-.signatureLine::after {
-  content: "";
-  position: absolute;
-  top: -8px;
-  left: 0;
-  right: 0;
-  height: 16px;
-  border-bottom: 1px solid #333;
-}
-
-.modal.darkMode .signatureLine::after {
-  border-bottom-color: #fff;
-}
-
-.signatureLabel {
-  font-weight: bold;
-  color: #555;
-  margin: 0;
-  font-size: 1rem;
-}
-
-.modal.darkMode .signatureLabel {
-  color: #ccc;
-}
-
-/* Certificate Footer */
-.certificateFooter {
-  margin-top: 40px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.modal.darkMode .certificateFooter {
-  border-top-color: rgba(255, 255, 255, 0.2);
-  color: #aaa;
-}
-
-.issueDate {
-  margin: 0 0 10px 0;
-  font-weight: 500;
-}
-
-.verificationNote {
-  margin: 0;
-  font-style: italic;
-}
-
-/* Action Buttons */
+/* Action bar */
 .actionButtons {
   display: flex;
-  gap: 15px;
-  justify-content: center;
-  padding: 30px;
-  border-top: 1px solid #e0e0e0;
-  background: #f8f9fa;
-}
-
-.modal.darkMode .actionButtons {
-  border-top-color: #333;
-  background: #1a1a1a;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 20px 28px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .downloadButton,
 .printButton,
 .closeButton {
-  padding: 12px 24px;
-  border: none;
+  padding: 9px 16px;
   border-radius: 6px;
-  font-size: 1rem;
+  font-size: .875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 140px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all .15s ease;
+  min-width: 0;
 }
 
 .downloadButton {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
 }
 
 .downloadButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .printButton {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  color: white;
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border);
 }
 
 .printButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+  background: var(--hover);
+  color: var(--text);
 }
 
-.closeButton {
-  background: #6c757d;
-  color: white;
+/* this .closeButton override is only for the footer button — not the top X */
+.actionButtons .closeButton {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border);
+  width: auto;
+  height: auto;
+  font-size: .875rem;
 }
 
-.closeButton:hover:not(:disabled) {
-  background: #5a6268;
-  transform: translateY(-2px);
+.actionButtons .closeButton:hover {
+  background: var(--hover);
+  color: var(--text);
 }
 
 .downloadButton:disabled,
 .printButton:disabled {
-  opacity: 0.6;
+  opacity: .6;
   cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
 }
 
-/* Error Message */
 .errorMessage {
   text-align: center;
   padding: 40px;
-  color: #dc3545;
-  font-size: 1.1rem;
+  color: var(--danger);
+  font-size: 1rem;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .modalContent {
-    width: 100%;
-    height: 100%;
-    max-height: 100vh;
-    border-radius: 0;
-  }
-  
-  .certificateContainer {
-    padding: 15px;
-  }
-  
-  .certificateBorder {
-    padding: 20px;
-    border-width: 10px;
-  }
-  
-  .certificateHeader {
-    flex-direction: column;
-    gap: 20px;
-    text-align: center;
-    padding: 20px;
-  }
-  
-  .universityName {
-    font-size: 1.8rem;
-  }
-  
-  .studentName h2 {
-    font-size: 2rem;
-  }
-  
-  .signaturesSection {
-    flex-direction: column;
-    gap: 30px;
-  }
-  
-  .actionButtons {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .downloadButton,
-  .printButton,
-  .closeButton {
-    width: 100%;
-    max-width: 200px;
-  }
+/* Dark-mode legacy classes → just neutralise them so the certificate itself stays visible */
+.modal.darkMode .modalContent {
+  background: var(--surface);
+  color: var(--text);
 }
 
-@media (max-width: 480px) {
-  .header {
-    padding: 15px 20px;
-  }
-  
-  .certificateContainer {
-    padding: 10px;
-  } 
-          .universityName {
-    font-size: 1.5rem;
-  }
-  
-  .studentName h2 {
-    font-size: 1.6rem;
-  }
-  
-  .programDetails {
-    font-size: 1rem;
-  }
+.modal.darkMode .header {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+.modal.darkMode .certificateContainer {
+  background: var(--bg);
 }

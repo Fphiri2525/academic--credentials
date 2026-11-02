@@ -1,16 +1,16 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
+﻿import React, { useState, useEffect, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet, useLocation } from 'react-router-dom';
 import Login from './Login';
-import Homepage from './Homepage';
-import Stock from './Components/Stock';
-import Staff from './Components/Staff';
+import Homepage from './nche/Homepage';
+import UniversitiesPage from './nche/components/universities/UniversitiesPage';
 import Users from './Components/Users';
 import Emails from './Components/Emails';
-import Report from './Components/Report';
+import ReportsPage from './nche/components/reports/ReportsPage';
 import StudentAccreditationPortal from './student_approval/Student';
 import StudentDetails from './student_approval/StudentDetails';
 import QRCodePage from './student_approval/QRCodePage';
 import Graduate from './university_dashboard/Grsduate';
+
 import EmployerDashboard from './employer';
 import UniversityManagement from './university_dashboard/university';
 import ManebPortal from './MANEB3/maneb';
@@ -21,6 +21,7 @@ import Reports from './MANEB3/Reports';
 import ManageInstitutions from './MANEB3/ManageInstitutions';
 import Settings from './MANEB3/Settings';
 import FormPage from './form';
+import ProgramsPage from './nche/components/programs/ProgramsPage';
 
 const Auth = Login; // same component, kept as alias
 
@@ -35,7 +36,7 @@ const getAuth = () => {
   }
 };
 
-// ⚠️ Adjust to the role names your backend actually returns
+// âš ï¸ Adjust to the role names your backend actually returns
 const HOMEPAGE_ROLES = ['admin', 'staff'];
 
 const roleHome = (role = '') => {
@@ -165,15 +166,13 @@ function App() {
           <Route path="/student/details" element={<StudentDetails />} />
           <Route path="/student/qrcode" element={<QRCodePage />} />
 
-          {/* ---------- Homepage: now protected ---------- */}
           <Route>
             <Route path="/homepage" element={<Homepage onLogout={handleLogout} />}>
-              <Route index element={<Navigate to="stock" replace />} />
-              <Route path="stock" element={<Stock />} />
-              <Route path="staff" element={<Staff />} />
+              <Route path="universities" element={<UniversitiesPage />} />
+              <Route path="programs" element={<ProgramsPage />} />
               <Route path="users" element={<Users />} />
               <Route path="emails" element={<Emails />} />
-              <Route path="report" element={<Report />} />
+              <Route path="report" element={<ReportsPage />} />
             </Route>
           </Route>
         </Route>
@@ -207,7 +206,7 @@ function App() {
           path="/unauthorized"
           element={
             <div className="flex flex-col items-center justify-center h-screen text-center p-8">
-              <h1 className="text-red-600 mb-4 text-2xl font-bold">🚫 Unauthorized Access</h1>
+              <h1 className="text-red-600 mb-4 text-2xl font-bold">ðŸš« Unauthorized Access</h1>
               <p className="mb-8 text-slate-500">You don't have permission to access this page.</p>
               <button
                 onClick={() => (window.location.href = roleHome(getAuth().user?.role))}
@@ -226,3 +225,7 @@ function App() {
 }
 
 export default App;
+
+
+
+
