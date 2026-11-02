@@ -1,196 +1,243 @@
-import React, { useState } from 'react';
-import { emailService } from '../services/emailService';
+import { useState, useEffect } from 'react';
+import { ScrollText, RefreshCw, Download, Trash2, Search, Filter } from 'lucide-react';
+import { getContract, web3 } from '../web3service';
+import { useActivityTracker } from '../hooks/useActivityTracker';
+import styles from './Emails.module.css';
 
-const EmailTest = () => {
-  const [testData, setTestData] = useState({
-    name: 'Test User',
-    email: 'test@example.com',
-    role: 'Student',
-    institution: 'Test University',
-    password: 'testpassword123'
+export default function SystemLogsPage({ showSuccessNotification, showErrorNotification }) {
+  const [systemLogs, setSystemLogs] = useState([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [query, setQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [severityFilter, setSeverityFilter] = useState('all');
+  const [userFilter, setUserFilter] = useState('');
+  const [tab, setTab] = useState('activities');
+
+  const {
+    activities, getFilteredActivities, clearActivities, exportActivities, trackSystem,
+  } = useActivityTracker();
+
+  useEffect(() => {
+    trackSystem('Page Access', 'User accessed System Logs page');
+  }, [trackSystem]);
+
+  useEffect(() => {
+    if (tab === 'blockchain') fetchLogs();
+    const t = setInterval(() => { if (tab === 'blockchain') fetchLogs(); }, 30000);
+    return () => clearInterval(t);
+  }, [tab]);
+
+  const fetchLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      if (!web3?.eth) { setSystemLogs([]); return; }
+      const latest = await web3.eth.getBlockNumber();
+      const fromBlock = Math.max(0, Number(latest) - 1000);
+
+      const contractNames = ['userManagement', 'accreditationManagement', 'certificateManagement'];
+      const labels = { userManagement: 'User', accreditationManagement: 'Accreditation', certificateManagement: 'Certificate' };
+      const logs = [];
+
+      for (const name of contractNames) {
+        let c; try { c = getContract(name); } catch { continue; }
+        try {
+          const events = await c.getPastEvents('allEvents', { fromBlock, toBlock: 'latest' });
+          events.forEach((ev) => logs.push({
+            id: `${name}_${ev.transactionHash}`,
+            timestamp: new Date().toISOString(),
+            type: labels[name],
+            action: ev.event,
+            details: `Block ${ev.blockNumber}`,
+            txHash: ev.transactionHash,
+            blockNumber: ev.blockNumber,
+          }));
+        } catch (err) { /* ignore */ }
+      }
+
+      logs.sort((a, b) => Number(b.blockNumber || 0) - Number(a.blockNumber || 0));
+      setSystemLogs(logs.slice(0, 100));
+    } catch (err) {
+      showErrorNotification?.(`Failed to load logs: ${err.message}`);
+    } finally { setLoadingLogs(false); }
+  };
+
+  const filteredActivities = getFilteredActivities({
+    search: query,
+    category: typeFilter === 'all' ? '' : typeFilter,
+    user: userFilter,
+    severity: severityFilter === 'all' ? '' : severityFilter,
   });
-  const [status, setStatus] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setTestData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const filteredLogs = systemLogs.filter((l) => {
+    const hay = `${l.action} ${l.details} ${l.type}`.toLowerCase();
+    if (query && !hay.includes(query.toLowerCase())) return false;
+    if (typeFilter !== 'all' && !l.type.toLowerCase().includes(typeFilter.toLowerCase())) return false;
+    return true;
+  });
+
+  const clearAll = () => {
+    if (tab === 'activities') { clearActivities(); showSuccessNotification?.('Activity logs cleared.'); }
+    else { setSystemLogs([]); showSuccessNotification?.('Blockchain logs cleared.'); }
   };
 
-  const testEmailConnection = async () => {
-    setLoading(true);
-    setStatus('Testing email connection...');
-    
+  const exportAll = () => {
     try {
-      const result = await emailService.testConnection();
-      if (result) {
-        setStatus('✅ Email connection successful!');
-      } else {
-        setStatus('❌ Email connection failed');
-      }
-    } catch (error) {
-      setStatus(`❌ Error: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const testWelcomeEmail = async () => {
-    setLoading(true);
-    setStatus('Sending test welcome email...');
-    
-    try {
-      await emailService.sendWelcomeEmail(testData);
-      setStatus('✅ Test welcome email sent successfully!');
-    } catch (error) {
-      setStatus(`❌ Error sending email: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const checkConfigStatus = async () => {
-    setLoading(true);
-    setStatus('Checking email configuration...');
-    
-    try {
-      const config = await emailService.getConfigStatus();
-      if (config.isConfigured) {
-        setStatus('✅ Email service is properly configured');
-      } else {
-        setStatus('❌ Email service is not configured properly');
-      }
-    } catch (error) {
-      setStatus(`❌ Error checking config: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
+      const data = tab === 'activities' ? exportActivities('json') : JSON.stringify(systemLogs, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `${tab}-logs-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click(); URL.revokeObjectURL(url);
+      showSuccessNotification?.('Logs exported.');
+    } catch (err) { showErrorNotification?.(err.message); }
   };
 
   return (
-    <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
-      <h2>Email Service Test</h2>
-      
-      <div style={{ marginBottom: '20px' }}>
-        <h3>Test Data</h3>
-        <div style={{ display: 'grid', gap: '10px' }}>
-          <input
-            type="text"
-            name="name"
-            placeholder="Name"
-            value={testData.name}
-            onChange={handleInputChange}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={testData.email}
-            onChange={handleInputChange}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-          <input
-            type="text"
-            name="role"
-            placeholder="Role"
-            value={testData.role}
-            onChange={handleInputChange}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-          <input
-            type="text"
-            name="institution"
-            placeholder="Institution"
-            value={testData.institution}
-            onChange={handleInputChange}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
-          <input
-            type="text"
-            name="password"
-            placeholder="Password"
-            value={testData.password}
-            onChange={handleInputChange}
-            style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
-          />
+    <div className={styles.container}>
+      <div className={styles.intro}>
+        <div>
+          <h1 className={styles.title}>System Logs</h1>
+          <p className={styles.subtitle}>Monitor user activities and blockchain events.</p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+      {/* Tabs */}
+      <div className={styles.tabs}>
         <button
-          onClick={checkConfigStatus}
-          disabled={loading}
-          style={{
-            padding: '10px 15px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: loading ? 'not-allowed' : 'pointer'
-          }}
+          className={`${styles.tab} ${tab === 'activities' ? styles.tabActive : ''}`}
+          onClick={() => setTab('activities')}
         >
-          Check Config
+          <ScrollText size={16} /> User activities ({activities.length})
         </button>
-        
         <button
-          onClick={testEmailConnection}
-          disabled={loading}
-          style={{
-            padding: '10px 15px',
-            backgroundColor: '#28a745',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: loading ? 'not-allowed' : 'pointer'
-          }}
+          className={`${styles.tab} ${tab === 'blockchain' ? styles.tabActive : ''}`}
+          onClick={() => setTab('blockchain')}
         >
-          Test Connection
-        </button>
-        
-        <button
-          onClick={testWelcomeEmail}
-          disabled={loading}
-          style={{
-            padding: '10px 15px',
-            backgroundColor: '#ffc107',
-            color: 'black',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: loading ? 'not-allowed' : 'pointer'
-          }}
-        >
-          Send Test Email
+          Blockchain events ({systemLogs.length})
         </button>
       </div>
 
-      {status && (
-        <div style={{
-          padding: '10px',
-          borderRadius: '4px',
-          backgroundColor: status.includes('✅') ? '#d4edda' : '#f8d7da',
-          color: status.includes('✅') ? '#155724' : '#721c24',
-          border: `1px solid ${status.includes('✅') ? '#c3e6cb' : '#f5c6cb'}`
-        }}>
-          {status}
+      {/* Filters */}
+      <div className={styles.filters}>
+        <div className={styles.searchBox}>
+          <Search size={16} className={styles.searchIcon} />
+          <input
+            className={styles.searchInput}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search logs…"
+          />
         </div>
-      )}
 
-      <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
-        <h4>Instructions:</h4>
-        <ol>
-          <li>First, check if the backend server is running on port 5000</li>
-          <li>Click "Check Config" to verify email settings</li>
-          <li>Click "Test Connection" to verify email service</li>
-          <li>Update the test data with a real email address</li>
-          <li>Click "Send Test Email" to send a welcome email</li>
-        </ol>
+        <select
+          className={styles.select}
+          value={typeFilter}
+          onChange={(e) => setTypeFilter(e.target.value)}
+        >
+          <option value="all">All categories</option>
+          {tab === 'activities' ? (
+            <>
+              <option value="auth">Authentication</option>
+              <option value="navigation">Navigation</option>
+              <option value="user_management">User management</option>
+              <option value="certificate">Certificate</option>
+              <option value="system">System</option>
+            </>
+          ) : (
+            <>
+              <option value="user">User</option>
+              <option value="accreditation">Accreditation</option>
+              <option value="certificate">Certificate</option>
+            </>
+          )}
+        </select>
+
+        {tab === 'activities' && (
+          <select
+            className={styles.select}
+            value={severityFilter}
+            onChange={(e) => setSeverityFilter(e.target.value)}
+          >
+            <option value="all">All severities</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+          </select>
+        )}
+
+        <div className={styles.actions}>
+          {tab === 'blockchain' && (
+            <button className={styles.btnGhost} onClick={fetchLogs} disabled={loadingLogs}>
+              <RefreshCw size={14} /> {loadingLogs ? 'Loading…' : 'Refresh'}
+            </button>
+          )}
+          <button className={styles.btnGhost} onClick={exportAll}>
+            <Download size={14} /> Export
+          </button>
+          <button className={styles.btnGhostDanger} onClick={clearAll}>
+            <Trash2 size={14} /> Clear
+          </button>
+        </div>
+      </div>
+
+      {/* List */}
+      <div className={styles.card}>
+        {tab === 'activities' ? (
+          filteredActivities.length === 0 ? (
+            <EmptyState text={query ? 'No activities match your filters.' : 'No activities recorded yet.'} />
+          ) : (
+            <ul className={styles.logList}>
+              {filteredActivities.map((a) => (
+                <li key={a.id} className={styles.logItem}>
+                  <div className={styles.logTop}>
+                    <span className={`${styles.chip} ${styles[`chip${a.severity}`] || ''}`}>
+                      {a.category}
+                    </span>
+                    <span className={styles.logTime}>{new Date(a.timestamp).toLocaleString()}</span>
+                  </div>
+                  <div className={styles.logAction}>{a.action}</div>
+                  <div className={styles.logDetails}>{a.description}</div>
+                  <div className={styles.logMeta}>
+                    <span>User: {a.user.email} ({a.user.role})</span>
+                    <span>Page: {a.metadata.pathname}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )
+        ) : loadingLogs ? (
+          <div className={styles.loadingState}><div className={styles.spinner} /><p>Loading blockchain logs…</p></div>
+        ) : filteredLogs.length === 0 ? (
+          <EmptyState text={query ? 'No logs match your filters.' : 'No blockchain logs found.'} />
+        ) : (
+          <ul className={styles.logList}>
+            {filteredLogs.map((l) => (
+              <li key={l.id} className={styles.logItem}>
+                <div className={styles.logTop}>
+                  <span className={styles.chip}>{l.type}</span>
+                  <span className={styles.logTime}>{new Date(l.timestamp).toLocaleString()}</span>
+                </div>
+                <div className={styles.logAction}>{l.action}</div>
+                <div className={styles.logDetails}>{l.details}</div>
+                {l.txHash && (
+                  <div className={styles.logMeta}>
+                    <code>{l.txHash.slice(0, 12)}…{l.txHash.slice(-8)}</code>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
-};
+}
 
-export default EmailTest; 
+function EmptyState({ text }) {
+  return (
+    <div className={styles.emptyState}>
+      <ScrollText size={32} />
+      <p>{text}</p>
+    </div>
+  );
+}

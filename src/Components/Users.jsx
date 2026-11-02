@@ -1,19 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { FaUserPlus, FaEye } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { UserPlus, Eye, X, Search, AlertTriangle, Save } from "lucide-react";
 import {
   useUserManagement,
   useConnectionStatus,
   useAccreditationManagement,
 } from "../hooks/useSmartContract";
 import { emailService } from "../services/emailService";
-import styles from "./user.module.css";
+import styles from "./Users.module.css";
 
-const UsersPage = ({ isDark }) => {
-  const [isAddUserFormOpen, setIsAddUserFormOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+export default function UsersPage({
+  showSuccessNotification,
+  showErrorNotification,
+}) {
+  const [formOpen, setFormOpen] = useState(false);
+  const [viewing, setViewing] = useState(null);
+  const [universities, setUniversities] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingUnis, setLoadingUnis] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState("");
+  const [query, setQuery] = useState("");
 
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     name: "",
     email: "",
     contactInfo: "",
@@ -22,111 +31,41 @@ const UsersPage = ({ isDark }) => {
     institution: "",
   });
 
-  // State for universities dropdown
-  const [universities, setUniversities] = useState([]);
-  const [isLoadingUniversities, setIsLoadingUniversities] = useState(false);
-
-  // Use the smart contract hooks
-  const {
-    getAllUsers,
-    registerUser,
-    updateUserEmailAndName,
-    updateUserPassword,
-    deleteUser,
-    loading,
-    error,
-  } = useUserManagement();
-
-  const {
-    getAllAccreditedUniversities,
-    loading: accreditationLoading,
-    error: accreditationError,
-  } = useAccreditationManagement();
-
+  const { getAllUsers, registerUser, loading } = useUserManagement();
+  const { getAllAccreditedUniversities } = useAccreditationManagement();
   const { isConnected } = useConnectionStatus();
 
-  const [users, setUsers] = useState([]);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [transactionStatus, setTransactionStatus] = useState("");
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      email: "",
-      contactInfo: "",
-      password: "",
-      role: "",
-      institution: "",
-    });
-  };
-
-  const toggleAddUserForm = () => {
-    setIsAddUserFormOpen(!isAddUserFormOpen);
-    if (!isAddUserFormOpen) resetForm();
-  };
-
-  // Fetch all accredited universities for dropdown
-  const fetchUniversities = async () => {
+  const fetchUsers = async () => {
+    if (!isConnected) {
+      setUsers([]);
+      setLoadingUsers(false);
+      return;
+    }
     try {
-      setIsLoadingUniversities(true);
-      console.log("Fetching universities from blockchain...");
-
-      if (!isConnected) {
-        console.warn("Not connected to blockchain");
-        setUniversities([]);
-        return;
-      }
-
-      const universitiesData = await getAllAccreditedUniversities();
-      console.log("Universities fetched:", universitiesData);
-
-      if (universitiesData && Array.isArray(universitiesData)) {
-        setUniversities(universitiesData);
-      } else {
-        setUniversities([]);
-      }
-    } catch (error) {
-      console.error("Error fetching universities:", error);
-      setUniversities([]);
+      setLoadingUsers(true);
+      const data = await getAllUsers();
+      setUsers(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setUsers([]);
+      setStatus(`Error fetching users: ${e.message}`);
     } finally {
-      setIsLoadingUniversities(false);
+      setLoadingUsers(false);
     }
   };
 
-  // Fetch all users from smart contract
-  const fetchUsers = async () => {
+  const fetchUniversities = async () => {
+    if (!isConnected) {
+      setUniversities([]);
+      return;
+    }
     try {
-      setIsLoadingUsers(true);
-      console.log("Fetching users from blockchain...");
-
-      if (!isConnected) {
-        console.warn("Not connected to blockchain");
-        setUsers([]);
-        return;
-      }
-
-      const usersData = await getAllUsers();
-      console.log("Users fetched:", usersData);
-
-      if (usersData && Array.isArray(usersData)) {
-        setUsers(usersData);
-      } else {
-        console.warn("No users data or invalid format:", usersData);
-        setUsers([]);
-      }
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      setUsers([]);
-      setTransactionStatus(`Error fetching users: ${error.message}`);
-      setTimeout(() => setTransactionStatus(""), 5000);
+      setLoadingUnis(true);
+      const data = await getAllAccreditedUniversities();
+      setUniversities(Array.isArray(data) ? data : []);
+    } catch {
+      setUniversities([]);
     } finally {
-      setIsLoadingUsers(false);
+      setLoadingUnis(false);
     }
   };
 
@@ -134,360 +73,280 @@ const UsersPage = ({ isDark }) => {
     if (isConnected) {
       fetchUsers();
       fetchUniversities();
+    } else {
+      setLoadingUsers(false);
     }
   }, [isConnected]);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const resetForm = () =>
+    setForm({
+      name: "",
+      email: "",
+      contactInfo: "",
+      password: "",
+      role: "",
+      institution: "",
+    });
 
+  const submit = async (e) => {
+    e.preventDefault();
     if (
-      !formData.name.trim() ||
-      !formData.email.trim() ||
-      !formData.contactInfo.trim() ||
-      !formData.password.trim() ||
-      !formData.role.trim() ||
-      !formData.institution.trim()
+      !form.name.trim() ||
+      !form.email.trim() ||
+      !form.contactInfo.trim() ||
+      !form.password.trim() ||
+      !form.role.trim() ||
+      !form.institution.trim()
     ) {
-      setTransactionStatus("Error: Please fill in all fields");
-      setTimeout(() => setTransactionStatus(""), 5000);
-      return;
+      return showErrorNotification?.("Please fill in all fields.");
     }
-
     try {
-      setIsSubmitting(true);
-      setTransactionStatus("Adding user to blockchain...");
-
-      const result = await registerUser(formData);
-      console.log("User registered successfully:", result);
-
-      // Send welcome email after successful registration
-      let emailSent = false;
+      setSubmitting(true);
+      await registerUser(form);
       try {
-        setTransactionStatus("Sending welcome email...");
-        await emailService.sendWelcomeEmail(formData);
-        console.log("Welcome email sent successfully");
-        emailSent = true;
-      } catch (emailError) {
-        console.error("Failed to send welcome email:", emailError);
-        // Don't fail the entire registration if email fails
-        console.warn(
-          "Email service unavailable - user registration completed without email notification",
-        );
-      }
-
+        await emailService.sendWelcomeEmail(form);
+      } catch {}
       resetForm();
-      setIsAddUserFormOpen(false);
+      setFormOpen(false);
       await fetchUsers();
-
-      if (emailSent) {
-        setTransactionStatus("User added successfully! Welcome email sent.");
-      } else {
-        setTransactionStatus(
-          "User added successfully! (Email service unavailable)",
-        );
-      }
-      setTimeout(() => setTransactionStatus(""), 3000);
-    } catch (error) {
-      console.error("Error adding user:", error);
-      setTransactionStatus(`Error adding user: ${error.message}`);
-      setTimeout(() => setTransactionStatus(""), 5000);
+      showSuccessNotification?.("User added.");
+    } catch (err) {
+      showErrorNotification?.(`Error adding user: ${err.message}`);
     } finally {
-      setIsSubmitting(false);
+      setSubmitting(false);
     }
   };
 
-  const handleViewUser = (user) => {
-    setSelectedUser(user);
-    setIsViewModalOpen(true);
-  };
-
-  const handleUpdateUser = async (event) => {
-    event.preventDefault();
-
-    // Check connection status
-    if (!isConnected) {
-      setTransactionStatus("Error: Please connect your wallet to update users");
-      setTimeout(() => setTransactionStatus(""), 5000);
-      return;
-    }
-
-    // Validate form data
-    if (!formData.name.trim() || !formData.email.trim()) {
-      setTransactionStatus("Error: Name and email are required");
-      setTimeout(() => setTransactionStatus(""), 5000);
-      return;
-    }
-
-    // Check if email format is valid
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      setTransactionStatus("Error: Please enter a valid email address");
-      setTimeout(() => setTransactionStatus(""), 5000);
-      return;
-    }
-
-    // Check if there are actual changes
-    const hasEmailChange = selectedUser.email !== formData.email;
-    const hasNameChange = selectedUser.name !== formData.name;
-    const hasPasswordChange = formData.password && formData.password.trim();
-
-    if (!hasEmailChange && !hasNameChange && !hasPasswordChange) {
-      setTransactionStatus("No changes detected");
-      setTimeout(() => setTransactionStatus(""), 3000);
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      setTransactionStatus("Updating user on blockchain...");
-
-      // Update email and name if changed
-      if (hasEmailChange || hasNameChange) {
-        console.log("Updating user email/name:", {
-          currentEmail: selectedUser.email,
-          newEmail: formData.email,
-          newName: formData.name,
-        });
-
-        await updateUserEmailAndName(
-          selectedUser.email,
-          formData.email,
-          formData.name,
-        );
-
-        setTransactionStatus("User details updated. Processing password...");
-      }
-
-      // Update password if provided
-      if (hasPasswordChange) {
-        console.log("Updating user password for:", formData.email);
-
-        await updateUserPassword(formData.email, formData.password);
-      }
-
-      setTransactionStatus("User updated successfully!");
-      setIsEditModalOpen(false);
-      await fetchUsers();
-      setTimeout(() => setTransactionStatus(""), 3000);
-    } catch (error) {
-      console.error("Error updating user:", error);
-
-      // Provide more specific error messages
-      let errorMessage = "Error updating user: ";
-      if (error.message.includes("insufficient funds")) {
-        errorMessage += "Insufficient funds for transaction fees";
-      } else if (error.message.includes("user rejected")) {
-        errorMessage += "Transaction was rejected";
-      } else if (error.message.includes("Network error")) {
-        errorMessage +=
-          "Network connection issue. Please check your connection and try again";
-      } else if (error.message.includes("execution reverted")) {
-        errorMessage +=
-          "Transaction failed. The user might not exist or email might be already taken";
-      } else {
-        errorMessage += error.message;
-      }
-
-      setTransactionStatus(errorMessage);
-      setTimeout(() => setTransactionStatus(""), 8000);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeleteUser = async (userEmail) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      try {
-        setIsSubmitting(true);
-        setTransactionStatus("Deleting user from blockchain...");
-
-        await deleteUser(userEmail);
-        setTransactionStatus("User deleted successfully!");
-        await fetchUsers();
-        setTimeout(() => setTransactionStatus(""), 3000);
-      } catch (error) {
-        console.error("Error deleting user:", error);
-        setTransactionStatus(`Error deleting user: ${error.message}`);
-        setTimeout(() => setTransactionStatus(""), 5000);
-      } finally {
-        setIsSubmitting(false);
-      }
-    }
-  };
+  const filtered = users.filter((u) =>
+    [u.name, u.email, u.role, u.institution]
+      .join(" ")
+      .toLowerCase()
+      .includes(query.toLowerCase()),
+  );
 
   return (
-    <div className={`${styles.container} ${isDark ? styles.darkMode : ""}`}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>User Management</h1>
-        <button
-          onClick={toggleAddUserForm}
-          className={styles.addButton}
-          disabled={isSubmitting || !isConnected}
-        >
-          <FaUserPlus /> Add User
-        </button>
+    <div className={styles.container}>
+      <div className={styles.intro}>
+        <div>
+          <h1 className={styles.title}>University Accounts</h1>
+          <p className={styles.subtitle}>
+            Manage NCHE, university, MANEB, and employer accounts.
+          </p>
+        </div>
+        <div className={styles.headerActions}>
+          <div className={styles.searchBox}>
+            <Search size={16} className={styles.searchIcon} />
+            <input
+              className={styles.searchInput}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name, email, or role"
+            />
+          </div>
+          <button
+            className={styles.btnPrimary}
+            onClick={() => {
+              setFormOpen(true);
+              resetForm();
+            }}
+            disabled={submitting || !isConnected}
+          >
+            <UserPlus size={16} /> Add User
+          </button>
+        </div>
       </div>
 
       {!isConnected && (
-        <div className={styles.connectionWarning}>
-          ⚠️ Not connected to blockchain. Please connect your wallet to manage
-          users.
+        <div className={`${styles.alert} ${styles.alertWarning}`}>
+          <AlertTriangle size={18} />
+          <span>
+            Not connected to blockchain. Connect your wallet to manage users.
+          </span>
         </div>
       )}
 
-      {transactionStatus && (
+      {status && (
+        <div className={`${styles.alert} ${styles.alertDanger}`}>
+          <AlertTriangle size={18} />
+          <span>{status}</span>
+        </div>
+      )}
+
+      <div className={styles.card}>
+        {loadingUsers || loading ? (
+          <div className={styles.loadingState}>
+            <div className={styles.spinner} />
+            <p>Loading users from blockchain…</p>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className={styles.emptyState}>
+            <p>
+              {query ? "No users match your search." : "No users found yet."}
+            </p>
+          </div>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Institution</th>
+                  <th>Contact</th>
+                  <th style={{ textAlign: "right" }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((u, i) => (
+                  <tr key={i}>
+                    <td style={{ fontWeight: 500 }}>{u.name}</td>
+                    <td>{u.email}</td>
+                    <td>
+                      <span
+                        className={`${styles.chip} ${styles[`chip${(u.role || "").replace(/^\w/, (c) => c.toUpperCase())}`] || ""}`}
+                      >
+                        {u.role}
+                      </span>
+                    </td>
+                    <td>{u.institution}</td>
+                    <td>{u.contactInfo}</td>
+                    <td>
+                      <div className={styles.tableActions}>
+                        <button
+                          className={styles.btnGhost}
+                          onClick={() => setViewing(u)}
+                        >
+                          <Eye size={14} /> View
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Add user modal */}
+      {formOpen && (
         <div
-          className={`${styles.transactionStatus} ${transactionStatus.includes("Error") ? styles.error : styles.success}`}
+          className={styles.overlayBackdrop}
+          onClick={() => setFormOpen(false)}
         >
-          {transactionStatus}
-        </div>
-      )}
-
-      {loading && (
-        <div className={styles.loadingState}>
-          <div className={styles.spinner}></div>
-          <p>Processing blockchain transaction...</p>
-        </div>
-      )}
-
-      {error && <div className={styles.errorState}>❌ {error}</div>}
-
-      {/* Add User Form */}
-      {isAddUserFormOpen && (
-        <div className={styles.formOverlay}>
-          <div className={styles.formContainer}>
-            <h2>Add New User</h2>
-            <form onSubmit={handleSubmit} className={styles.form}>
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label>Name *</label>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>Add New User</h2>
+              <button
+                className={styles.closeBtn}
+                onClick={() => setFormOpen(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={submit} className={styles.modalBody}>
+              <div className={styles.formGrid}>
+                <Field label="Full name *">
                   <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="Enter full name"
+                    className={styles.input}
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
                     required
-                    disabled={isSubmitting}
+                    disabled={submitting}
                   />
-                </div>
-                <div className={styles.formGroup}>
-                  <label>Email *</label>
+                </Field>
+                <Field label="Email *">
                   <input
+                    className={styles.input}
                     type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="Enter email address"
+                    value={form.email}
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
                     required
-                    disabled={isSubmitting}
+                    disabled={submitting}
                   />
-                </div>
-              </div>
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label>Contact Info *</label>
+                </Field>
+                <Field label="Contact info *">
                   <input
-                    type="text"
-                    name="contactInfo"
-                    value={formData.contactInfo}
-                    onChange={handleInputChange}
-                    placeholder="Phone number or address"
+                    className={styles.input}
+                    value={form.contactInfo}
+                    onChange={(e) =>
+                      setForm({ ...form, contactInfo: e.target.value })
+                    }
                     required
-                    disabled={isSubmitting}
+                    disabled={submitting}
                   />
-                </div>
-                <div className={styles.formGroup}>
-                  <label>Password *</label>
+                </Field>
+                <Field label="Password *">
                   <input
+                    className={styles.input}
                     type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    placeholder="Enter password"
+                    value={form.password}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
                     required
-                    disabled={isSubmitting}
+                    disabled={submitting}
                   />
-                </div>
-              </div>
-              <div className={styles.formRow}>
-                <div className={styles.formGroup}>
-                  <label>Role *</label>
+                </Field>
+                <Field label="Role *">
                   <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
+                    className={styles.input}
+                    value={form.role}
+                    onChange={(e) => setForm({ ...form, role: e.target.value })}
                     required
-                    disabled={isSubmitting}
+                    disabled={submitting}
                   >
-                    <option value="">Select Role</option>
+                    <option value="">Select role</option>
                     <option value="student">Student</option>
                     <option value="university">University</option>
                     <option value="nche">NCHE</option>
                     <option value="employer">Employer</option>
                     <option value="maneb">MANEB</option>
                   </select>
-                </div>
-                <div className={styles.formGroup}>
-                  <label>Institution *</label>
+                </Field>
+                <Field label="Institution *">
                   <select
-                    name="institution"
-                    value={formData.institution}
-                    onChange={handleInputChange}
+                    className={styles.input}
+                    value={form.institution}
+                    onChange={(e) =>
+                      setForm({ ...form, institution: e.target.value })
+                    }
                     required
-                    disabled={isSubmitting || isLoadingUniversities}
+                    disabled={submitting || loadingUnis}
                   >
                     <option value="">
-                      {isLoadingUniversities
-                        ? "Loading institutions..."
-                        : "Select Institution"}
+                      {loadingUnis
+                        ? "Loading institutions…"
+                        : "Select institution"}
                     </option>
-                    {/* Default Institutions */}
-                    <option value="NCHE">
-                      NCHE (National Council for Higher Education)
-                    </option>
-                    <option value="MANEB">
-                      MANEB (Malawi National Examinations Board)
-                    </option>
-                    {/* Separator */}
-                    {universities.length > 0 && (
-                      <option disabled>--- Accredited Universities ---</option>
-                    )}
-                    {/* Accredited Universities */}
-                    {universities.map((university) => (
-                      <option key={university.id} value={university.name}>
-                        {university.name}
+                    <option value="NCHE">NCHE</option>
+                    <option value="MANEB">MANEB</option>
+                    {universities.map((u) => (
+                      <option key={u.id} value={u.name}>
+                        {u.name}
                       </option>
                     ))}
                   </select>
-                  {!isConnected && (
-                    <small
-                      style={{
-                        color: "#dc2626",
-                        marginTop: "4px",
-                        display: "block",
-                      }}
-                    >
-                      Please connect your wallet to load universities
-                    </small>
-                  )}
-                </div>
+                </Field>
               </div>
               <div className={styles.formActions}>
                 <button
-                  type="submit"
-                  disabled={isSubmitting || !isConnected}
-                  className={styles.submitButton}
-                >
-                  {isSubmitting ? "Adding to Blockchain..." : "Add User"}
-                </button>
-                <button
                   type="button"
-                  onClick={toggleAddUserForm}
-                  disabled={isSubmitting}
-                  className={styles.cancelButton}
+                  className={styles.btnGhost}
+                  onClick={() => setFormOpen(false)}
+                  disabled={submitting}
                 >
                   Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={styles.btnPrimary}
+                  disabled={submitting || !isConnected}
+                >
+                  <Save size={16} /> {submitting ? "Adding…" : "Add user"}
                 </button>
               </div>
             </form>
@@ -495,94 +354,58 @@ const UsersPage = ({ isDark }) => {
         </div>
       )}
 
-      {/* Users Table */}
-      <div className={styles.usersContainer}>
-        {isLoadingUsers ? (
-          <div className={styles.loading}>Loading users from blockchain...</div>
-        ) : users.length > 0 ? (
-          <table className={styles.usersTable}>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Institution</th>
-                <th>Contact</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user, index) => (
-                <tr key={index}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <span
-                      className={`${styles.roleBadge} ${styles[`${user.role}Badge`]}`}
-                    >
-                      {user.role}
-                    </span>
-                  </td>
-                  <td>{user.institution}</td>
-                  <td>{user.contactInfo}</td>
-                  <td>
-                    <div className={styles.actionButtons}>
-                      <button
-                        onClick={() => handleViewUser(user)}
-                        className={`${styles.actionButton} ${styles.viewButton}`}
-                        title="View User"
-                      >
-                        <FaEye />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          <div className={styles.emptyState}>
-            <p>
-              No users found.{" "}
-              {!isConnected && "Connect your wallet to view users."}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* View User Modal */}
-      {isViewModalOpen && selectedUser && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modal}>
-            <h2>User Details</h2>
-            <div className={styles.userInfo}>
-              <p>
-                <strong>Name:</strong> {selectedUser.name}
-              </p>
-              <p>
-                <strong>Email:</strong> {selectedUser.email}
-              </p>
-              <p>
-                <strong>Contact:</strong> {selectedUser.contactInfo}
-              </p>
-              <p>
-                <strong>Role:</strong> {selectedUser.role}
-              </p>
-              <p>
-                <strong>Institution:</strong> {selectedUser.institution}
-              </p>
+      {/* View user modal */}
+      {viewing && (
+        <div
+          className={styles.overlayBackdrop}
+          onClick={() => setViewing(null)}
+        >
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>{viewing.name}</h2>
+              <button
+                className={styles.closeBtn}
+                onClick={() => setViewing(null)}
+              >
+                <X size={20} />
+              </button>
             </div>
-            <button
-              onClick={() => setIsViewModalOpen(false)}
-              className={styles.closeButton}
-            >
-              Close
-            </button>
+            <div className={styles.modalBody}>
+              <div className={styles.infoGrid}>
+                <Info label="Email" value={viewing.email} />
+                <Info label="Contact" value={viewing.contactInfo} />
+                <Info label="Role" value={viewing.role} />
+                <Info label="Institution" value={viewing.institution} />
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button
+                className={styles.btnGhost}
+                onClick={() => setViewing(null)}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
-};
+}
 
-export default UsersPage;
+function Field({ label, children }) {
+  return (
+    <div className={styles.field}>
+      <label className={styles.label}>{label}</label>
+      {children}
+    </div>
+  );
+}
+function Info({ label, value }) {
+  return (
+    <div>
+      <div className={styles.infoLabel}>{label}</div>
+      <div className={styles.infoValue}>{value}</div>
+    </div>
+  );
+}

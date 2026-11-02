@@ -1,621 +1,382 @@
-import React, { useState, useEffect } from 'react';
-import { Download, Printer, Filter, FileText, Users, School, CheckCircle } from 'lucide-react';
-import styles from './report.module.css';
+import { useEffect, useState } from 'react';
+import {
+  FileText, Download, Printer, Filter, Users, School, CheckCircle2, RefreshCw,
+} from 'lucide-react';
+import styles from './Reports.module.css';
 import { useUserManagement } from '../hooks/useSmartContract';
 
-const ReportPage = () => {
-  const [activeReport, setActiveReport] = useState('student-examination');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [reportContent, setReportContent] = useState(null);
+const REPORT_TYPES = [
+  { id: 'student-examination', label: 'Student Examination', icon: Users },
+  { id: 'school-performance',  label: 'School Performance',  icon: School },
+  { id: 'verification-status', label: 'Verification Status', icon: CheckCircle2 },
+  { id: 'district-summary',    label: 'District Summary',    icon: Filter },
+];
+
+const REPORT_TITLES = {
+  'student-examination': 'Student Examination Report',
+  'school-performance':  'School Performance Report',
+  'verification-status': 'Verification Status Report',
+  'district-summary':    'District Summary Report',
+};
+
+export default function ReportsPage() {
+  const [active, setActive] = useState('student-examination');
+  const [generating, setGenerating] = useState(false);
+  const [content, setContent] = useState(null);
   const [formFourData, setFormFourData] = useState([]);
   const [schoolData, setSchoolData] = useState([]);
   const [verificationData, setVerificationData] = useState([]);
-  
-  // Filter states
   const [filters, setFilters] = useState({
-    year: 'all',
-    district: '',
-    school: '',
-    status: 'all'
+    year: 'all', district: '', school: '', status: 'all',
   });
 
-  const { 
-    getAllFormFourDetails, 
-    getAllSecondarySchools, 
-    getAllVerificationRequests
+  const {
+    getAllFormFourDetails,
+    getAllSecondarySchools,
+    getAllVerificationRequests,
   } = useUserManagement();
 
-  // Fetch initial data
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const fetchData = async () => {
     try {
-      const students = await getAllFormFourDetails();
-      const schools = await getAllSecondarySchools();
-      const verifications = await getAllVerificationRequests();
-
+      const [students, schools, verifications] = await Promise.all([
+        getAllFormFourDetails(),
+        getAllSecondarySchools(),
+        getAllVerificationRequests(),
+      ]);
       setFormFourData(students || []);
       setSchoolData(schools || []);
       setVerificationData(verifications || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
+    } catch (err) {
+      console.error('Failed to fetch MANEB data:', err);
     }
   };
 
-  const handleFilterChange = (filterName, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [filterName]: value
-    }));
-  };
+  const setFilter = (key, value) =>
+    setFilters((prev) => ({ ...prev, [key]: value }));
 
-  const generateReport = async (e) => {
-    if (e) e.preventDefault();
-    setIsGenerating(true);
-    
+  const generate = async (e) => {
+    e?.preventDefault();
+    setGenerating(true);
     try {
-      let content;
-      switch(activeReport) {
-        case 'student-examination':
-          content = generateStudentExaminationReport();
-          break;
-        case 'school-performance':
-          content = generateSchoolPerformanceReport();
-          break;
-        case 'verification-status':
-          content = generateVerificationStatusReport();
-          break;
-        case 'district-summary':
-          content = generateDistrictSummaryReport();
-          break;
-        default:
-          content = null;
-      }
-      
-      setReportContent(content);
-    } catch (error) {
-      console.error('Error generating report:', error);
-      setReportContent(
-        <div className={styles.errorReport}>
-          <h4>Error Generating Report</h4>
-          <p>An error occurred while generating the report: {error.message}</p>
+      const generators = {
+        'student-examination': generateStudentExamination,
+        'school-performance':  generateSchoolPerformance,
+        'verification-status': generateVerificationStatus,
+        'district-summary':    generateDistrictSummary,
+      };
+      setContent(generators[active]?.() ?? null);
+    } catch (err) {
+      setContent(
+        <div className={styles.errorBlock}>
+          <h4>Failed to generate report</h4>
+          <p>{err.message}</p>
         </div>
       );
     } finally {
-      setIsGenerating(false);
+      setGenerating(false);
     }
   };
 
-  // Report generation functions
-  const generateStudentExaminationReport = () => {
-    let filteredData = [...formFourData];
-    
+  /* ---------- Report builders ---------- */
+
+  const generateStudentExamination = () => {
+    let rows = [...formFourData];
     if (filters.year !== 'all') {
-      filteredData = filteredData.filter(student => 
-        student.yearOfExamination === parseInt(filters.year)
-      );
+      rows = rows.filter((s) => s.yearOfExamination === parseInt(filters.year));
     }
-    
     if (filters.district) {
-      filteredData = filteredData.filter(student => 
-        student.district?.toLowerCase().includes(filters.district.toLowerCase())
+      rows = rows.filter((s) =>
+        (s.district || '').toLowerCase().includes(filters.district.toLowerCase())
       );
     }
 
     return (
-      <div className={styles.report}>
-        <div className={styles.reportHeader}>
-          <h4>MANEB Student Examination Report</h4>
-          <div className={styles.reportMeta}>
-            <span>Generated on: {new Date().toLocaleDateString()}</span>
-            <span>Total Records: {filteredData.length}</span>
-          </div>
-        </div>
-        
-        <div className={styles.reportParameters}>
-          <p><strong>Report Parameters:</strong></p>
-          <ul>
-            <li>Year: {filters.year === 'all' ? 'All Years' : filters.year}</li>
-            <li>District: {filters.district || 'All Districts'}</li>
-          </ul>
-        </div>
-        
-        <table className={styles.reportTable}>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Student Name</th>
-              <th>Examination Number</th>
-              <th>School Name</th>
-              <th>District</th>
-              <th>Year</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((student, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td className={styles.studentName}>{student.studentName}</td>
-                  <td className={styles.examNumber}>{student.examinationNumber}</td>
-                  <td>{student.schoolName}</td>
-                  <td>{student.district || 'N/A'}</td>
-                  <td>{student.yearOfExamination}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className={styles.noData}>No student data found for the selected filters</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-        
-        <div className={styles.reportSummary}>
-          <div className={styles.summaryGrid}>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Total Students</span>
-              <span className={styles.summaryValue}>{filteredData.length}</span>
-            </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Unique Schools</span>
-              <span className={styles.summaryValue}>
-                {new Set(filteredData.map(s => s.schoolName)).size}
-              </span>
-            </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Unique Districts</span>
-              <span className={styles.summaryValue}>
-                {new Set(filteredData.map(s => s.district)).size}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ReportShell
+        title="MANEB Student Examination Report"
+        meta={[
+          ['Total records', rows.length],
+          ['Year', filters.year === 'all' ? 'All years' : filters.year],
+          ['District', filters.district || 'All districts'],
+        ]}
+      >
+        <Table
+          headers={['#', 'Student', 'Exam No.', 'School', 'District', 'Year']}
+          rows={rows.map((s, i) => [
+            i + 1,
+            s.studentName,
+            s.examinationNumber,
+            s.schoolName,
+            s.district || '—',
+            s.yearOfExamination,
+          ])}
+        />
+        <Summary
+          items={[
+            ['Total students', rows.length],
+            ['Unique schools', new Set(rows.map((s) => s.schoolName)).size],
+            ['Unique districts', new Set(rows.map((s) => s.district)).size],
+          ]}
+        />
+      </ReportShell>
     );
   };
 
-  const generateSchoolPerformanceReport = () => {
-    const schoolPerformance = schoolData.map(school => {
-      const schoolStudents = formFourData.filter(student => 
-        student.schoolName === school.schoolName
-      );
-      
-      return {
-        schoolName: school.schoolName,
-        schoolCode: school.schoolCode,
-        district: school.district,
-        totalStudents: schoolStudents.length,
-        category: school.category
-      };
-    }).filter(school => school.totalStudents > 0)
+  const generateSchoolPerformance = () => {
+    const rows = schoolData
+      .map((s) => {
+        const students = formFourData.filter((f) => f.schoolName === s.schoolName);
+        return {
+          schoolName: s.schoolName,
+          schoolCode: s.schoolCode,
+          district: s.district,
+          category: s.category,
+          totalStudents: students.length,
+        };
+      })
+      .filter((s) => s.totalStudents > 0)
       .sort((a, b) => b.totalStudents - a.totalStudents);
 
     return (
-      <div className={styles.report}>
-        <div className={styles.reportHeader}>
-          <h4>MANEB School Performance Report</h4>
-          <div className={styles.reportMeta}>
-            <span>Generated on: {new Date().toLocaleDateString()}</span>
-            <span>Total Schools: {schoolPerformance.length}</span>
-          </div>
-        </div>
-        
-        <table className={styles.reportTable}>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>School Name</th>
-              <th>School Code</th>
-              <th>District</th>
-              <th>Category</th>
-              <th>Students Registered</th>
-            </tr>
-          </thead>
-          <tbody>
-            {schoolPerformance.length > 0 ? (
-              schoolPerformance.map((school, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td className={styles.schoolName}>{school.schoolName}</td>
-                  <td className={styles.schoolCode}>{school.schoolCode}</td>
-                  <td>{school.district}</td>
-                  <td>
-                    <span className={`${styles.categoryBadge} ${
-                      school.category === 'Public' ? styles.public : styles.private
-                    }`}>
-                      {school.category}
-                    </span>
-                  </td>
-                  <td className={styles.studentCount}>{school.totalStudents}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className={styles.noData}>No school performance data available</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-        
-        <div className={styles.reportSummary}>
-          <div className={styles.summaryGrid}>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Total Schools</span>
-              <span className={styles.summaryValue}>{schoolPerformance.length}</span>
-            </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Public Schools</span>
-              <span className={styles.summaryValue}>
-                {schoolPerformance.filter(s => s.category === 'Public').length}
-              </span>
-            </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Private Schools</span>
-              <span className={styles.summaryValue}>
-                {schoolPerformance.filter(s => s.category === 'Private').length}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ReportShell
+        title="MANEB School Performance Report"
+        meta={[['Total schools', rows.length]]}
+      >
+        <Table
+          headers={['#', 'School', 'Code', 'District', 'Category', 'Students']}
+          rows={rows.map((s, i) => [
+            i + 1,
+            s.schoolName,
+            s.schoolCode,
+            s.district,
+            <span className={styles.chip} key={i}>{s.category}</span>,
+            s.totalStudents,
+          ])}
+        />
+        <Summary
+          items={[
+            ['Total schools', rows.length],
+            ['Public', rows.filter((s) => s.category === 'Public').length],
+            ['Private', rows.filter((s) => s.category === 'Private').length],
+          ]}
+        />
+      </ReportShell>
     );
   };
 
-  const generateVerificationStatusReport = () => {
-    let filteredData = [...verificationData];
-    
+  const generateVerificationStatus = () => {
+    let rows = [...verificationData];
     if (filters.status !== 'all') {
-      filteredData = filteredData.filter(request => 
-        filters.status === 'approved' ? request.dateOfApproval > 0 : request.dateOfApproval <= 0
+      rows = rows.filter((r) =>
+        filters.status === 'approved' ? r.dateOfApproval > 0 : r.dateOfApproval <= 0
       );
     }
 
     return (
-      <div className={styles.report}>
-        <div className={styles.reportHeader}>
-          <h4>MANEB Verification Status Report</h4>
-          <div className={styles.reportMeta}>
-            <span>Generated on: {new Date().toLocaleDateString()}</span>
-            <span>Total Requests: {filteredData.length}</span>
-          </div>
-        </div>
-        
-        <table className={styles.reportTable}>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Student Name</th>
-              <th>Examination Number</th>
-              <th>School Name</th>
-              <th>Year</th>
-              <th>Verification Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.length > 0 ? (
-              filteredData.map((request, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td>{request.studentName}</td>
-                  <td className={styles.examNumber}>{request.examinationNumber}</td>
-                  <td>{request.schoolName}</td>
-                  <td>{request.yearOfExamination}</td>
-                  <td>
-                    {request.dateOfApproval > 0 
-                      ? new Date(request.dateOfApproval * 1000).toLocaleDateString() 
-                      : 'Pending'
-                    }
-                  </td>
-                  <td>
-                    <span className={`${styles.statusBadge} ${
-                      request.dateOfApproval > 0 ? styles.approved : styles.pending
-                    }`}>
-                      {request.dateOfApproval > 0 ? 'Approved' : 'Pending'}
-                    </span>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" className={styles.noData}>No verification requests found</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-        
-        <div className={styles.reportSummary}>
-          <div className={styles.summaryGrid}>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Total Requests</span>
-              <span className={styles.summaryValue}>{filteredData.length}</span>
-            </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Approved</span>
-              <span className={styles.summaryValue}>
-                {filteredData.filter(r => r.dateOfApproval > 0).length}
-              </span>
-            </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Pending</span>
-              <span className={styles.summaryValue}>
-                {filteredData.filter(r => r.dateOfApproval <= 0).length}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ReportShell
+        title="MANEB Verification Status Report"
+        meta={[['Total requests', rows.length]]}
+      >
+        <Table
+          headers={['#', 'Student', 'Exam No.', 'School', 'Year', 'Verified', 'Status']}
+          rows={rows.map((r, i) => [
+            i + 1,
+            r.studentName,
+            r.examinationNumber,
+            r.schoolName,
+            r.yearOfExamination,
+            r.dateOfApproval > 0
+              ? new Date(r.dateOfApproval * 1000).toLocaleDateString()
+              : '—',
+            <span
+              key={i}
+              className={`${styles.chip} ${r.dateOfApproval > 0 ? styles.chipSuccess : styles.chipWarning}`}
+            >
+              {r.dateOfApproval > 0 ? 'Approved' : 'Pending'}
+            </span>,
+          ])}
+        />
+        <Summary
+          items={[
+            ['Total', rows.length],
+            ['Approved', rows.filter((r) => r.dateOfApproval > 0).length],
+            ['Pending', rows.filter((r) => r.dateOfApproval <= 0).length],
+          ]}
+        />
+      </ReportShell>
     );
   };
 
-  const generateDistrictSummaryReport = () => {
-    const districtSummary = formFourData.reduce((acc, student) => {
-      const district = student.district || 'Unknown';
-      if (!acc[district]) {
-        acc[district] = {
-          district,
-          totalStudents: 0,
-          schools: new Set(),
-          years: new Set()
-        };
-      }
-      acc[district].totalStudents++;
-      acc[district].schools.add(student.schoolName);
-      acc[district].years.add(student.yearOfExamination);
-      return acc;
+  const generateDistrictSummary = () => {
+    const acc = formFourData.reduce((map, s) => {
+      const key = s.district || 'Unknown';
+      if (!map[key]) map[key] = { district: key, students: 0, schools: new Set(), years: new Set() };
+      map[key].students += 1;
+      map[key].schools.add(s.schoolName);
+      map[key].years.add(s.yearOfExamination);
+      return map;
     }, {});
 
-    const districtArray = Object.values(districtSummary)
-      .sort((a, b) => b.totalStudents - a.totalStudents);
+    const rows = Object.values(acc).sort((a, b) => b.students - a.students);
 
     return (
-      <div className={styles.report}>
-        <div className={styles.reportHeader}>
-          <h4>MANEB District Summary Report</h4>
-          <div className={styles.reportMeta}>
-            <span>Generated on: {new Date().toLocaleDateString()}</span>
-            <span>Total Districts: {districtArray.length}</span>
-          </div>
-        </div>
-        
-        <table className={styles.reportTable}>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>District</th>
-              <th>Total Students</th>
-              <th>Number of Schools</th>
-              <th>Examination Years</th>
-              <th>Average per School</th>
-            </tr>
-          </thead>
-          <tbody>
-            {districtArray.length > 0 ? (
-              districtArray.map((district, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td className={styles.districtName}>{district.district}</td>
-                  <td className={styles.studentCount}>{district.totalStudents}</td>
-                  <td>{district.schools.size}</td>
-                  <td>{Array.from(district.years).join(', ')}</td>
-                  <td>{Math.round(district.totalStudents / district.schools.size)}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className={styles.noData}>No district data available</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-        
-        <div className={styles.reportSummary}>
-          <div className={styles.summaryGrid}>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Total Districts</span>
-              <span className={styles.summaryValue}>{districtArray.length}</span>
-            </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Total Students</span>
-              <span className={styles.summaryValue}>
-                {districtArray.reduce((sum, district) => sum + district.totalStudents, 0)}
-              </span>
-            </div>
-            <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Total Schools</span>
-              <span className={styles.summaryValue}>
-                {new Set(formFourData.map(s => s.schoolName)).size}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ReportShell
+        title="MANEB District Summary Report"
+        meta={[['Total districts', rows.length]]}
+      >
+        <Table
+          headers={['#', 'District', 'Students', 'Schools', 'Years', 'Avg / school']}
+          rows={rows.map((d, i) => [
+            i + 1,
+            d.district,
+            d.students,
+            d.schools.size,
+            Array.from(d.years).join(', '),
+            Math.round(d.students / Math.max(1, d.schools.size)),
+          ])}
+        />
+        <Summary
+          items={[
+            ['Districts', rows.length],
+            ['Total students', rows.reduce((n, d) => n + d.students, 0)],
+            ['Total schools', new Set(formFourData.map((s) => s.schoolName)).size],
+          ]}
+        />
+      </ReportShell>
     );
   };
 
-  const handleExport = (format) => {
-    console.log(`Exporting report as ${format}`);
-  };
+  /* ---------- Layout ---------- */
 
   return (
-    <div className={styles.reportPage}>
-      {/* Header Section */}
-      <header className={styles.pageHeader}>
-        <div className={styles.headerContent}>
-          <h1 className={styles.pageTitle}>
-            <FileText className={styles.titleIcon} />
-            MANEB Reporting System
+    <div className={styles.container}>
+      <div className={styles.intro}>
+        <div>
+          <h1 className={styles.title}>
+            <FileText size={20} /> MANEB Reporting
           </h1>
-          <p className={styles.pageDescription}>
-            Generate comprehensive reports for examination data, school performance, and student verification
+          <p className={styles.subtitle}>
+            Generate reports for examinations, school performance, and verification.
           </p>
         </div>
-      </header>
+      </div>
 
-      {/* Main Content */}
-      <div className={styles.reportContainer}>
-        {/* Report Type Selection */}
-        <div className={styles.reportSidebar}>
-          <h3 className={styles.sidebarTitle}>Report Types</h3>
-          <div className={styles.reportTypes}>
+      <div className={styles.layout}>
+        {/* Report type sidebar */}
+        <nav className={styles.typeNav}>
+          <h3 className={styles.typeNavTitle}>Report types</h3>
+          {REPORT_TYPES.map(({ id, label, icon: Icon }) => (
             <button
-              className={`${styles.reportType} ${activeReport === 'student-examination' ? styles.active : ''}`}
-              onClick={() => setActiveReport('student-examination')}
+              key={id}
+              className={`${styles.typeItem} ${active === id ? styles.typeActive : ''}`}
+              onClick={() => { setActive(id); setContent(null); }}
             >
-              <Users size={18} />
-              Student Examination
+              <Icon size={16} /> {label}
             </button>
-            
-            <button
-              className={`${styles.reportType} ${activeReport === 'school-performance' ? styles.active : ''}`}
-              onClick={() => setActiveReport('school-performance')}
-            >
-              <School size={18} />
-              School Performance
-            </button>
-            
-            <button
-              className={`${styles.reportType} ${activeReport === 'verification-status' ? styles.active : ''}`}
-              onClick={() => setActiveReport('verification-status')}
-            >
-              <CheckCircle size={18} />
-              Verification Status
-            </button>
-            
-            <button
-              className={`${styles.reportType} ${activeReport === 'district-summary' ? styles.active : ''}`}
-              onClick={() => setActiveReport('district-summary')}
-            >
-              <Filter size={18} />
-              District Summary
-            </button>
-          </div>
-        </div>
+          ))}
+        </nav>
 
-        {/* Report Configuration and Preview */}
-        <div className={styles.reportMain}>
-          {/* Report Configuration */}
-          <div className={styles.reportConfig}>
-            <h3 className={styles.configTitle}>
-              {activeReport === 'student-examination' && 'Student Examination Report'}
-              {activeReport === 'school-performance' && 'School Performance Report'}
-              {activeReport === 'verification-status' && 'Verification Status Report'}
-              {activeReport === 'district-summary' && 'District Summary Report'}
-            </h3>
-            
-            <form onSubmit={generateReport} className={styles.configForm}>
-              <div className={styles.filterGrid}>
-                {activeReport === 'student-examination' && (
-                  <>
-                    <div className={styles.filterGroup}>
-                      <label>Examination Year</label>
-                      <select 
-                        value={filters.year}
-                        onChange={(e) => handleFilterChange('year', e.target.value)}
-                      >
-                        <option value="all">All Years</option>
-                        <option value="2024">2024</option>
-                        <option value="2023">2023</option>
-                        <option value="2022">2022</option>
-                        <option value="2021">2021</option>
-                      </select>
-                    </div>
-                    
-                    <div className={styles.filterGroup}>
-                      <label>District</label>
-                      <input
-                        type="text"
-                        placeholder="Filter by district..."
-                        value={filters.district}
-                        onChange={(e) => handleFilterChange('district', e.target.value)}
-                      />
-                    </div>
-                  </>
-                )}
-                
-                {activeReport === 'verification-status' && (
-                  <div className={styles.filterGroup}>
-                    <label>Verification Status</label>
-                    <select 
-                      value={filters.status}
-                      onChange={(e) => handleFilterChange('status', e.target.value)}
+        {/* Main panel */}
+        <div className={styles.panel}>
+          {/* Config */}
+          <form className={styles.config} onSubmit={generate}>
+            <h2 className={styles.configTitle}>{REPORT_TITLES[active]}</h2>
+
+            <div className={styles.filterGrid}>
+              {active === 'student-examination' && (
+                <>
+                  <Field label="Examination year">
+                    <select
+                      className={styles.input}
+                      value={filters.year}
+                      onChange={(e) => setFilter('year', e.target.value)}
                     >
-                      <option value="all">All Statuses</option>
-                      <option value="approved">Approved Only</option>
-                      <option value="pending">Pending Only</option>
+                      <option value="all">All years</option>
+                      <option value="2024">2024</option>
+                      <option value="2023">2023</option>
+                      <option value="2022">2022</option>
+                      <option value="2021">2021</option>
                     </select>
-                  </div>
-                )}
-              </div>
-              
-              <div className={styles.formActions}>
-                <button 
-                  type="submit" 
-                  className={styles.generateButton}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? 'Generating Report...' : 'Generate Report'}
-                </button>
-                
-                <button 
-                  type="button" 
-                  className={styles.refreshButton}
-                  onClick={fetchData}
-                >
-                  Refresh Data
-                </button>
-              </div>
-            </form>
-          </div>
+                  </Field>
+                  <Field label="District">
+                    <input
+                      className={styles.input}
+                      value={filters.district}
+                      onChange={(e) => setFilter('district', e.target.value)}
+                      placeholder="Filter by district…"
+                    />
+                  </Field>
+                </>
+              )}
 
-          {/* Report Preview */}
-          <div className={styles.reportPreview}>
+              {active === 'verification-status' && (
+                <Field label="Verification status">
+                  <select
+                    className={styles.input}
+                    value={filters.status}
+                    onChange={(e) => setFilter('status', e.target.value)}
+                  >
+                    <option value="all">All statuses</option>
+                    <option value="approved">Approved only</option>
+                    <option value="pending">Pending only</option>
+                  </select>
+                </Field>
+              )}
+            </div>
+
+            <div className={styles.formActions}>
+              <button className={styles.btnGhost} type="button" onClick={fetchData}>
+                <RefreshCw size={14} /> Refresh data
+              </button>
+              <button className={styles.btnPrimary} type="submit" disabled={generating}>
+                {generating ? 'Generating…' : 'Generate report'}
+              </button>
+            </div>
+          </form>
+
+          {/* Preview */}
+          <div className={styles.preview}>
             <div className={styles.previewHeader}>
-              <h3>Report Preview</h3>
+              <h3 className={styles.previewTitle}>Preview</h3>
               <div className={styles.previewActions}>
-                <button 
-                  className={styles.exportButton}
-                  onClick={() => handleExport('pdf')}
-                  disabled={!reportContent}
+                <button
+                  className={styles.btnGhost}
+                  onClick={() => alert('Export PDF — hook up your PDF lib here')}
+                  disabled={!content}
                 >
-                  <Download size={16} />
-                  Export PDF
+                  <Download size={14} /> PDF
                 </button>
-                <button 
-                  className={styles.exportButton}
-                  onClick={() => handleExport('csv')}
-                  disabled={!reportContent}
+                <button
+                  className={styles.btnGhost}
+                  onClick={() => alert('Export CSV — hook up your CSV lib here')}
+                  disabled={!content}
                 >
-                  <Download size={16} />
-                  Export CSV
+                  <Download size={14} /> CSV
                 </button>
-                <button 
-                  className={styles.printButton}
+                <button
+                  className={styles.btnGhost}
                   onClick={() => window.print()}
-                  disabled={!reportContent}
+                  disabled={!content}
                 >
-                  <Printer size={16} />
-                  Print
+                  <Printer size={14} /> Print
                 </button>
               </div>
             </div>
-            
-            <div className={styles.previewContent}>
-              {isGenerating ? (
+
+            <div className={styles.previewBody}>
+              {generating ? (
                 <div className={styles.loadingState}>
-                  <div className={styles.loadingSpinner}></div>
-                  <p>Generating report...</p>
+                  <div className={styles.spinner} />
+                  <p>Generating report…</p>
                 </div>
-              ) : reportContent ? (
-                reportContent
+              ) : content ? (
+                content
               ) : (
                 <div className={styles.emptyState}>
-                  <FileText size={48} className={styles.emptyIcon} />
-                  <h4>No Report Generated</h4>
-                  <p>Configure your report parameters and click "Generate Report" to view the preview</p>
+                  <FileText size={32} />
+                  <h4>No report yet</h4>
+                  <p>Choose filters above and click Generate report.</p>
                 </div>
               )}
             </div>
@@ -624,6 +385,68 @@ const ReportPage = () => {
       </div>
     </div>
   );
-};
+}
 
-export default ReportPage;
+/* ---------- Shared sub-components ---------- */
+
+function Field({ label, children }) {
+  return (
+    <div className={styles.field}>
+      <label className={styles.label}>{label}</label>
+      {children}
+    </div>
+  );
+}
+
+function ReportShell({ title, meta = [], children }) {
+  return (
+    <div className={styles.reportShell}>
+      <div className={styles.reportHeader}>
+        <h3 className={styles.reportTitle}>{title}</h3>
+        <div className={styles.reportMeta}>
+          <span>Generated {new Date().toLocaleDateString()}</span>
+          {meta.map(([k, v]) => (
+            <span key={k}>{k}: <strong>{v}</strong></span>
+          ))}
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Table({ headers, rows }) {
+  return (
+    <div className={styles.tableWrap}>
+      <table className={styles.table}>
+        <thead>
+          <tr>{headers.map((h) => <th key={h}>{h}</th>)}</tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 ? (
+            <tr><td colSpan={headers.length} className={styles.noRows}>No data matches the selected filters.</td></tr>
+          ) : (
+            rows.map((row, i) => (
+              <tr key={i}>
+                {row.map((cell, j) => <td key={j}>{cell}</td>)}
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function Summary({ items }) {
+  return (
+    <div className={styles.summary}>
+      {items.map(([label, value]) => (
+        <div key={label} className={styles.summaryItem}>
+          <div className={styles.summaryLabel}>{label}</div>
+          <div className={styles.summaryValue}>{value}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
