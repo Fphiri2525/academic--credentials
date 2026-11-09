@@ -1,15 +1,15 @@
-﻿import { certByYear } from '../../constants/dashboard';
-import styles from './Dashboard.module.css';
+﻿import styles from './Dashboard.module.css';
 
-export default function CertYearChart() {
-  const max = Math.max(...certByYear.map((y) => y.value));
+// `data` is [{ year, value }]. Dashboard passes live numbers from the contract.
+export default function CertYearChart({ data = [] }) {
+  const max = Math.max(1, ...data.map((y) => y.value));
 
   return (
     <div className={styles.card}>
       <h2 className={styles.cardTitle}>Certificates issued per year</h2>
 
       <div className={styles.progressList}>
-        {certByYear.map((y) => {
+        {data.map((y) => {
           const pct = (y.value / max) * 100;
           return (
             <div key={y.year} className={styles.progressRow}>

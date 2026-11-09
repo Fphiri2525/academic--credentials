@@ -297,52 +297,107 @@ class Web3Service {
   }
 
   // Validate parameters for addUniversityGraduates - UPDATED PARAMETER ORDER
-  validateGraduateParams(params) {
-    if (!Array.isArray(params) || params.length !== 6) {
-      throw new Error('❌ Invalid parameters: Expected 6 parameters for addUniversityGraduates');
-    }
-
-    // UPDATED: Correct parameter order matching React component
-    const [universityName, studentNames, programOfStudy, award, yearOfGraduation, registrationNumbers] = params;
-
-    // Basic validation - accept ANY non-empty string for programOfStudy
-    if (!programOfStudy || typeof programOfStudy !== 'string' || programOfStudy.trim() === '') {
-      throw new Error('❌ Program of study is required');
-    }
-
-    // Remove any specific program validation - accept any valid string including "datascience"
-    console.log('✅ Program of study accepted:', programOfStudy);
-
-    // Validate other fields
-    if (!universityName || typeof universityName !== 'string' || universityName.trim() === '') {
-      throw new Error('❌ Invalid university name');
-    }
-    if (!award || typeof award !== 'string' || award.trim() === '') {
-      throw new Error('❌ Invalid award');
-    }
-    if (!yearOfGraduation || typeof yearOfGraduation !== 'string' || yearOfGraduation.trim() === '') {
-      throw new Error('❌ Invalid year of graduation');
-    }
-    if (!Array.isArray(registrationNumbers) || registrationNumbers.length === 0) {
-      throw new Error('❌ Invalid registration numbers array');
-    }
-    if (!Array.isArray(studentNames) || studentNames.length === 0) {
-      throw new Error('❌ Invalid student names array');
-    }
-    if (registrationNumbers.length !== studentNames.length) {
-      throw new Error('❌ Registration numbers and student names arrays must have the same length');
-    }
-
-    console.log('✅ Graduate parameters validation passed');
-    console.log('✅ Validation details:', {
-      universityName: universityName,
-      studentNamesCount: studentNames.length,
-      programOfStudy: programOfStudy,
-      award: award,
-      yearOfGraduation: yearOfGraduation,
-      registrationNumbersCount: registrationNumbers.length
-    });
+  
+validateGraduateParams(params) {
+  if (!Array.isArray(params) || params.length !== 6) {
+    throw new Error(
+      '❌ Invalid parameters: Expected 6 parameters for addUniversityGraduates'
+    );
   }
+
+  // Correct order matching the Solidity function
+  const [
+    universityName,
+    programOfStudy,
+    award,
+    yearOfGraduation,
+    registrationNumbers,
+    studentNames
+  ] = params;
+
+  // Validate university
+  if (
+    typeof universityName !== 'string' ||
+    universityName.trim() === ''
+  ) {
+    throw new Error('❌ Invalid university name');
+  }
+
+  // Validate program
+  if (
+    typeof programOfStudy !== 'string' ||
+    programOfStudy.trim() === ''
+  ) {
+    throw new Error('❌ Program of study is required');
+  }
+
+  console.log('✅ Program of study accepted:', programOfStudy);
+
+  // Validate award
+  if (
+    typeof award !== 'string' ||
+    award.trim() === ''
+  ) {
+    throw new Error('❌ Invalid award');
+  }
+
+  // Validate graduation year
+  const year = String(yearOfGraduation).trim();
+
+  if (!/^\d{4}$/.test(year)) {
+    throw new Error('❌ Invalid year of graduation');
+  }
+
+  const numericYear = Number(year);
+
+  if (numericYear < 1900 || numericYear > new Date().getFullYear()) {
+    throw new Error('❌ Graduation year is outside the accepted range');
+  }
+
+  // Validate arrays
+  if (
+    !Array.isArray(registrationNumbers) ||
+    registrationNumbers.length === 0
+  ) {
+    throw new Error('❌ Invalid registration numbers array');
+  }
+
+  if (
+    !Array.isArray(studentNames) ||
+    studentNames.length === 0
+  ) {
+    throw new Error('❌ Invalid student names array');
+  }
+
+  if (registrationNumbers.length !== studentNames.length) {
+    throw new Error(
+      '❌ Registration numbers and student names must have the same length'
+    );
+  }
+
+  // Validate individual records
+  for (let i = 0; i < studentNames.length; i++) {
+    if (!String(studentNames[i] ?? '').trim()) {
+      throw new Error(`❌ Missing student name at position ${i + 1}`);
+    }
+
+    if (!String(registrationNumbers[i] ?? '').trim()) {
+      throw new Error(`❌ Missing registration number at position ${i + 1}`);
+    }
+  }
+
+  console.log('✅ Graduate parameters validation passed');
+
+  console.log('✅ Validation details:', {
+    universityName,
+    programOfStudy,
+    award,
+    yearOfGraduation: year,
+    studentNamesCount: studentNames.length,
+    registrationNumbersCount: registrationNumbers.length
+  });
+}
+
 
   // Enhanced contract call with retry logic
   async callContract(contractName, methodName, params = [], options = {}) {

@@ -1,16 +1,16 @@
 export const CONTRACTS = {
     userManagement: {
  
-      address:"0xfD7a5AEA0b28bA53AddC6b5E2169380E252cBE3e",
+      address:"0xee783a364d961B02EeE8C9Ce18F3f7D0d9180075",
        abi:[
     {
       "anonymous": false,
       "inputs": [
         {
-          "indexed": true,
-          "internalType": "bytes32",
+          "indexed": false,
+          "internalType": "string",
           "name": "email",
-          "type": "bytes32"
+          "type": "string"
         }
       ],
       "name": "UserDeleted",
@@ -20,10 +20,16 @@ export const CONTRACTS = {
       "anonymous": false,
       "inputs": [
         {
-          "indexed": true,
-          "internalType": "bytes32",
+          "indexed": false,
+          "internalType": "string",
           "name": "email",
-          "type": "bytes32"
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
         },
         {
           "indexed": false,
@@ -39,15 +45,9 @@ export const CONTRACTS = {
       "anonymous": false,
       "inputs": [
         {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "email",
-          "type": "bytes32"
-        },
-        {
           "indexed": false,
           "internalType": "string",
-          "name": "updateType",
+          "name": "email",
           "type": "string"
         }
       ],
@@ -56,7 +56,7 @@ export const CONTRACTS = {
     },
     {
       "inputs": [
-        { 
+        {
           "internalType": "string",
           "name": "_name",
           "type": "string"
@@ -123,27 +123,27 @@ export const CONTRACTS = {
       "outputs": [
         {
           "internalType": "string[]",
-          "name": "names",
+          "name": "",
           "type": "string[]"
         },
         {
           "internalType": "bytes32[]",
-          "name": "emails",
+          "name": "",
           "type": "bytes32[]"
         },
         {
           "internalType": "string[]",
-          "name": "contactInfos",
+          "name": "",
           "type": "string[]"
         },
         {
           "internalType": "string[]",
-          "name": "roles",
+          "name": "",
           "type": "string[]"
         },
         {
           "internalType": "string[]",
-          "name": "institutions",
+          "name": "",
           "type": "string[]"
         }
       ],
@@ -163,22 +163,22 @@ export const CONTRACTS = {
       "outputs": [
         {
           "internalType": "string",
-          "name": "name",
+          "name": "",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "contactInfo",
+          "name": "",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "role",
+          "name": "",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "institution",
+          "name": "",
           "type": "string"
         }
       ],
@@ -212,22 +212,22 @@ export const CONTRACTS = {
       "outputs": [
         {
           "internalType": "string[]",
-          "name": "names",
+          "name": "",
           "type": "string[]"
         },
         {
           "internalType": "bytes32[]",
-          "name": "emails",
+          "name": "",
           "type": "bytes32[]"
         },
         {
           "internalType": "string[]",
-          "name": "contactInfos",
+          "name": "",
           "type": "string[]"
         },
         {
           "internalType": "string[]",
-          "name": "roles",
+          "name": "",
           "type": "string[]"
         }
       ],
@@ -277,11 +277,6 @@ export const CONTRACTS = {
         },
         {
           "internalType": "string",
-          "name": "_currentPassword",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
           "name": "_newPassword",
           "type": "string"
         }
@@ -313,11 +308,30 @@ export const CONTRACTS = {
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_email",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_newPassword",
+          "type": "string"
+        }
+      ],
+      "name": "changeUserPasswordByEmail",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
     }
-  ]},
+  ], 
+},
     accreditationManagement: {
-        address:"0x1b6cAa7990F4b9F52F039dfBC3C03D653EFDAa35",
-        abi: [
+        address:"0xaE35E527CE8D461C1ddb0D7167a2Ed30F034e50e",
+        abi:[
     {
       "inputs": [],
       "stateMutability": "nonpayable",
@@ -348,6 +362,50 @@ export const CONTRACTS = {
         {
           "indexed": false,
           "internalType": "string",
+          "name": "institutionName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "programName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum AccreditationManagement.Status",
+          "name": "status",
+          "type": "uint8"
+        }
+      ],
+      "name": "ProgramStatusUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "institutionName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "programName",
+          "type": "string"
+        }
+      ],
+      "name": "ProgramUpdated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
           "name": "name",
           "type": "string"
         },
@@ -359,6 +417,25 @@ export const CONTRACTS = {
         }
       ],
       "name": "UniversityAdded",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum AccreditationManagement.Status",
+          "name": "status",
+          "type": "uint8"
+        }
+      ],
+      "name": "UniversityStatusUpdated",
       "type": "event"
     },
     {
@@ -404,6 +481,11 @@ export const CONTRACTS = {
           "internalType": "string",
           "name": "contactInfo",
           "type": "string"
+        },
+        {
+          "internalType": "enum AccreditationManagement.Status",
+          "name": "status",
+          "type": "uint8"
         }
       ],
       "stateMutability": "view",
@@ -473,6 +555,11 @@ export const CONTRACTS = {
           "internalType": "string",
           "name": "accreditationDate",
           "type": "string"
+        },
+        {
+          "internalType": "enum AccreditationManagement.Status",
+          "name": "status",
+          "type": "uint8"
         }
       ],
       "stateMutability": "view",
@@ -507,7 +594,7 @@ export const CONTRACTS = {
     },
     {
       "inputs": [
-        {  
+        {
           "internalType": "string",
           "name": "_institutionName",
           "type": "string"
@@ -537,6 +624,109 @@ export const CONTRACTS = {
       "inputs": [
         {
           "internalType": "string",
+          "name": "_institutionName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_programName",
+          "type": "string"
+        },
+        {
+          "internalType": "enum AccreditationManagement.Status",
+          "name": "_status",
+          "type": "uint8"
+        }
+      ],
+      "name": "updateProgramStatus",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_institutionName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_currentProgramName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_newProgramName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_newProgramType",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "_newAccreditationDate",
+          "type": "string"
+        }
+      ],
+      "name": "updateProgram",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_universityName",
+          "type": "string"
+        }
+      ],
+      "name": "getProgramsByUniversity",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "institutionName",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "programName",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "programType",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "accreditationDate",
+              "type": "string"
+            },
+            {
+              "internalType": "enum AccreditationManagement.Status",
+              "name": "status",
+              "type": "uint8"
+            }
+          ],
+          "internalType": "struct AccreditationManagement.Program[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
           "name": "_name",
           "type": "string"
         },
@@ -552,6 +742,24 @@ export const CONTRACTS = {
         }
       ],
       "name": "addAccreditedUniversity",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "_name",
+          "type": "string"
+        },
+        {
+          "internalType": "enum AccreditationManagement.Status",
+          "name": "_status",
+          "type": "uint8"
+        }
+      ],
+      "name": "updateUniversityStatus",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -576,6 +784,11 @@ export const CONTRACTS = {
               "internalType": "string",
               "name": "contactInfo",
               "type": "string"
+            },
+            {
+              "internalType": "enum AccreditationManagement.Status",
+              "name": "status",
+              "type": "uint8"
             }
           ],
           "internalType": "struct AccreditationManagement.AccreditedUniversity[]",
@@ -616,26 +829,6 @@ export const CONTRACTS = {
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "_universityName",
-          "type": "string"
-        }
-      ],
-      "name": "getProgramsByUniversity",
-      "outputs": [
-        {
-          "internalType": "string[]",
-          "name": "",
-          "type": "string[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
       "inputs": [],
       "name": "getTotalAccreditedUniversities",
       "outputs": [
@@ -663,43 +856,18 @@ export const CONTRACTS = {
       "type": "function",
       "constant": true
     }
-  ],},
+  ],}, 
     certificateManagement: {
-        address:"0x48a7133d6a0D92c782B399dDAaB3BD4E5228a2D5", 
+        address:"0x6be5E4cAe71895605755eCa2b20Cb705cAd82D10", 
         abi:[
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
     {
       "anonymous": false,
       "inputs": [
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "universityName",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "studentName",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "programOfStudy",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "award",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "yearOfGraduation",
-          "type": "string"
-        },
         {
           "indexed": false,
           "internalType": "string",
@@ -708,138 +876,385 @@ export const CONTRACTS = {
         },
         {
           "indexed": false,
-          "internalType": "string",
-          "name": "qrCode",
-          "type": "string"
-        }
-      ],
-      "name": "GraduateAdded",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "universityName",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "studentName",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "enum certificateManagement.VerificationStatus",
+          "internalType": "enum CertificateManagement.CertStatus",
           "name": "status",
           "type": "uint8"
         }
       ],
-      "name": "VerificationLogged",
+      "name": "CertificateStatusChanged",
       "type": "event"
     },
     {
+      "anonymous": false,
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "universityGraduates",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "universityName",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "studentName",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "programOfStudy",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "award",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "yearOfGraduation",
-          "type": "string"
-        },
-        {
+          "indexed": false,
           "internalType": "string",
           "name": "registrationNumber",
           "type": "string"
         },
         {
+          "indexed": false,
+          "internalType": "enum CertificateManagement.CheckResult",
+          "name": "result",
+          "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "checkedAt",
+          "type": "uint256"
+        }
+      ],
+      "name": "EmployerCheckLogged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "applicationId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "enum CertificateManagement.ApplicationStatus",
+          "name": "status",
+          "type": "uint8"
+        }
+      ],
+      "name": "ForeignApplicationStatusChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "applicationId",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "applicantName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "country",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "award",
+          "type": "string"
+        }
+      ],
+      "name": "ForeignApplicationSubmitted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "qrCode",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "studentName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "universityName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "registrationNumber",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "award",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "dateGenerated",
+          "type": "string"
+        }
+      ],
+      "name": "QRCodeGenerated",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "registrationNumber",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "onChainHash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "databaseHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "TamperDetected",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "registrationNumber",
+          "type": "string"
+        }
+      ],
+      "name": "TamperResolved",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "universityName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "studentName",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "programOfStudy",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "award",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "yearOfGraduation",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "registrationNumber",
+          "type": "string"
+        },
+        {
+          "indexed": false,
           "internalType": "string",
           "name": "qrCode",
           "type": "string"
         }
       ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "name": "UniversityGraduateAdded",
+      "type": "event"
     },
     {
+      "anonymous": false,
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "verificationRequests",
-      "outputs": [
-        {
+          "indexed": false,
           "internalType": "string",
           "name": "universityName",
           "type": "string"
         },
         {
+          "indexed": false,
           "internalType": "string",
           "name": "studentName",
           "type": "string"
         },
         {
+          "indexed": false,
           "internalType": "string",
           "name": "programOfStudy",
           "type": "string"
         },
         {
-          "internalType": "string",
-          "name": "yearOfGraduation",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "registrationNumber",
-          "type": "string"
-        },
-        {
+          "indexed": false,
           "internalType": "string",
           "name": "award",
           "type": "string"
         },
         {
+          "indexed": false,
+          "internalType": "string",
+          "name": "yearOfGraduation",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "registrationNumber",
+          "type": "string"
+        },
+        {
+          "indexed": false,
           "internalType": "string",
           "name": "dateVerified",
           "type": "string"
+        }
+      ],
+      "name": "VerificationRequestLogged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "email",
+          "type": "string"
         },
         {
-          "internalType": "enum certificateManagement.VerificationStatus",
-          "name": "status",
-          "type": "uint8"
+          "indexed": false,
+          "internalType": "string",
+          "name": "qrCode",
+          "type": "string"
+        }
+      ],
+      "name": "ViewQRCodeAdded",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "authorized",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "lastIntegrityCheckAt",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "recordsChecked",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "revokedCerts",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "suspendedCerts",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "tamperAlerts",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -849,33 +1264,51 @@ export const CONTRACTS = {
     {
       "inputs": [
         {
+          "internalType": "address",
+          "name": "account",
+          "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "allowed",
+          "type": "bool"
+        }
+      ],
+      "name": "setAuthorized",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
           "internalType": "string",
-          "name": "_universityName",
+          "name": "universityName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "programOfStudy",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "award",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "yearOfGraduation",
           "type": "string"
         },
         {
           "internalType": "string[]",
-          "name": "_studentNames",
+          "name": "registrationNumbers",
           "type": "string[]"
         },
         {
-          "internalType": "string",
-          "name": "_programOfStudy",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_award",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_yearOfGraduation",
-          "type": "string"
-        },
-        {
           "internalType": "string[]",
-          "name": "_registrationNumbers",
+          "name": "studentNames",
           "type": "string[]"
         }
       ],
@@ -888,16 +1321,46 @@ export const CONTRACTS = {
       "inputs": [
         {
           "internalType": "string",
-          "name": "_qrCode",
+          "name": "universityName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "studentName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "programOfStudy",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "award",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "yearOfGraduation",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "registrationNumber",
           "type": "string"
         }
       ],
-      "name": "addVerificationRequestByQRCode",
+      "name": "addForeignVerification",
       "outputs": [
         {
           "internalType": "bool",
           "name": "success",
           "type": "bool"
+        },
+        {
+          "internalType": "string",
+          "name": "qrCodeValue",
+          "type": "string"
         }
       ],
       "stateMutability": "nonpayable",
@@ -907,55 +1370,22 @@ export const CONTRACTS = {
       "inputs": [
         {
           "internalType": "string",
-          "name": "_universityName",
+          "name": "registrationNumber",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "_studentName",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_programOfStudy",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_yearOfGraduation",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_registrationNumber",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_award",
-          "type": "string"
-        },
-      ],
-      "name": "addVerificationRequest",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "_regNumber",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_award",
+          "name": "award",
           "type": "string"
         }
       ],
-      "name": "getStudentDetailsByRegNumberAndAward",
+      "name": "getStudentByAwardAndRegNumber",
       "outputs": [
+        {
+          "internalType": "bool",
+          "name": "found",
+          "type": "bool"
+        },
         {
           "components": [
             {
@@ -994,14 +1424,9 @@ export const CONTRACTS = {
               "type": "string"
             }
           ],
-          "internalType": "struct certificateManagement.UniversityGraduate",
-          "name": "student",
+          "internalType": "struct CertificateManagement.UniversityGraduate",
+          "name": "grad",
           "type": "tuple"
-        },
-        {
-          "internalType": "bool",
-          "name": "found",
-          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -1012,26 +1437,26 @@ export const CONTRACTS = {
       "inputs": [
         {
           "internalType": "string",
-          "name": "_award",
+          "name": "registrationNumber",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "_regNumber",
+          "name": "award",
           "type": "string"
         }
       ],
-      "name": "getQRCodeByAwardAndRegNumber",
+      "name": "getQRCodeByRegNumberAndAward",
       "outputs": [
         {
-          "internalType": "string",
-          "name": "qrCode",
-          "type": "string"
-        },
-        {
           "internalType": "bool",
           "name": "found",
           "type": "bool"
+        },
+        {
+          "internalType": "string",
+          "name": "qrCodeValue",
+          "type": "string"
         }
       ],
       "stateMutability": "view",
@@ -1042,13 +1467,18 @@ export const CONTRACTS = {
       "inputs": [
         {
           "internalType": "string",
-          "name": "_qrCode",
+          "name": "qrCodeValue",
           "type": "string"
         }
       ],
       "name": "getStudentByQRCode",
       "outputs": [
         {
+          "internalType": "bool",
+          "name": "found",
+          "type": "bool"
+        },
+        {
           "components": [
             {
               "internalType": "string",
@@ -1086,14 +1516,288 @@ export const CONTRACTS = {
               "type": "string"
             }
           ],
-          "internalType": "struct certificateManagement.UniversityGraduate",
+          "internalType": "struct CertificateManagement.UniversityGraduate",
           "name": "student",
           "type": "tuple"
-        },
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "qrCodeValue",
+          "type": "string"
+        }
+      ],
+      "name": "verifyByQRCode",
+      "outputs": [
         {
           "internalType": "bool",
-          "name": "found",
+          "name": "matched",
           "type": "bool"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "qrCodeValue",
+          "type": "string"
+        }
+      ],
+      "name": "addVerificationByQRCode",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "success",
+          "type": "bool"
+        },
+        {
+          "internalType": "string",
+          "name": "message",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getAllVerificationRequests",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "universityName",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "studentName",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "programOfStudy",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "award",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "yearOfGraduation",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "registrationNumber",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "dateVerified",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct CertificateManagement.VerificationRequest[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "universityName",
+          "type": "string"
+        }
+      ],
+      "name": "getGraduatesByUniversityName",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "universityName",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "studentName",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "programOfStudy",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "award",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "yearOfGraduation",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "registrationNumber",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct CertificateManagement.GraduateView[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "universityName",
+          "type": "string"
+        }
+      ],
+      "name": "getVerifiedStudentsByUniversity",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "universityName",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "studentName",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "programOfStudy",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "award",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "yearOfGraduation",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "registrationNumber",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "dateVerified",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct CertificateManagement.VerificationRequest[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "universityName",
+          "type": "string"
+        }
+      ],
+      "name": "searchVerificationByUniversityName",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "universityName",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "studentName",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "programOfStudy",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "award",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "yearOfGraduation",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "registrationNumber",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "dateVerified",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct CertificateManagement.VerificationRequest[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "universityName",
+          "type": "string"
+        }
+      ],
+      "name": "getTotalGraduatesByUniversityName",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "count",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -1116,7 +1820,7 @@ export const CONTRACTS = {
     },
     {
       "inputs": [],
-      "name": "getTotalVerificationRequests",
+      "name": "getTotalVerificationCertificates",
       "outputs": [
         {
           "internalType": "uint256",
@@ -1127,24 +1831,34 @@ export const CONTRACTS = {
       "stateMutability": "view",
       "type": "function",
       "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "qrCodeValue",
+          "type": "string"
+        }
+      ],
+      "name": "addQRCodeToStruct",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "success",
+          "type": "bool"
+        },
+        {
+          "internalType": "string",
+          "name": "message",
+          "type": "string"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
     },
     {
       "inputs": [],
-      "name": "getTotalVerified",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [],
-      "name": "getTotalRejected",
+      "name": "getTotalQRCodesGenerated",
       "outputs": [
         {
           "internalType": "uint256",
@@ -1160,511 +1874,213 @@ export const CONTRACTS = {
       "inputs": [
         {
           "internalType": "string",
-          "name": "_universityName",
-          "type": "string"
-        }
-      ],
-      "name": "getAllStudentsByUniversity",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "universityName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "studentName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "programOfStudy",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "award",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "yearOfGraduation",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "registrationNumber",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "qrCode",
-              "type": "string"
-            }
-          ],
-          "internalType": "struct certificateManagement.UniversityGraduate[]",
-          "name": "",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "_universityName",
+          "name": "email",
           "type": "string"
         },
         {
           "internalType": "string",
-          "name": "_programOfStudy",
+          "name": "qrCode",
           "type": "string"
         }
       ],
-      "name": "getStudentsByUniversityAndProgram",
+      "name": "addViewQRCodeDetails",
       "outputs": [
         {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "universityName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "studentName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "programOfStudy",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "award",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "yearOfGraduation",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "registrationNumber",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "qrCode",
-              "type": "string"
-            }
-          ],
-          "internalType": "struct certificateManagement.UniversityGraduate[]",
-          "name": "",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "_universityName",
-          "type": "string"
-        }
-      ],
-      "name": "getGraduatesByUniversity",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "universityName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "studentName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "programOfStudy",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "award",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "yearOfGraduation",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "registrationNumber",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "qrCode",
-              "type": "string"
-            }
-          ],
-          "internalType": "struct certificateManagement.UniversityGraduate[]",
-          "name": "",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "enum certificateManagement.VerificationStatus",
-          "name": "_status",
-          "type": "uint8"
-        }
-      ],
-      "name": "getVerificationByStatus",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "universityName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "studentName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "programOfStudy",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "yearOfGraduation",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "registrationNumber",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "award",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "dateVerified",
-              "type": "string"
-            },
-            {
-              "internalType": "enum certificateManagement.VerificationStatus",
-              "name": "status",
-              "type": "uint8"
-            }
-          ],
-          "internalType": "struct certificateManagement.VerificationRequest[]",
-          "name": "",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "_universityName",
-          "type": "string"
-        }
-      ],
-      "name": "getStudentDetailsByUniversity",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "universityName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "studentName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "programOfStudy",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "award",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "yearOfGraduation",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "registrationNumber",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "qrCode",
-              "type": "string"
-            }
-          ],
-          "internalType": "struct certificateManagement.UniversityGraduate[]",
-          "name": "",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "_universityName",
-          "type": "string"
+          "internalType": "bool",
+          "name": "success",
+          "type": "bool"
         },
         {
           "internalType": "string",
-          "name": "_registrationNumber",
+          "name": "message",
           "type": "string"
         }
       ],
-      "name": "getStudentByUniversityAndReg",
-      "outputs": [
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
         {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "universityName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "studentName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "programOfStudy",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "award",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "yearOfGraduation",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "registrationNumber",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "qrCode",
-              "type": "string"
-            }
-          ],
-          "internalType": "struct certificateManagement.UniversityGraduate",
-          "name": "",
-          "type": "tuple"
-        },
+          "internalType": "string",
+          "name": "email",
+          "type": "string"
+        }
+      ],
+      "name": "getQRCodeByEmail",
+      "outputs": [
         {
           "internalType": "bool",
           "name": "found",
           "type": "bool"
+        },
+        {
+          "internalType": "string",
+          "name": "qrCode",
+          "type": "string"
         }
       ],
       "stateMutability": "view",
       "type": "function",
       "constant": true
-    }
-  ],
-},
-  maneb:{
-    address:"0x79690705102784E49be4F2000f5Acd6235023e4B",
-    abi:[
+    },
     {
-      "anonymous": false,
+      "inputs": [],
+      "name": "getAllViewQRCodes",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "email",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "qrCode",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct CertificateManagement.ViewQRCode[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "getTotalViewQRCodes",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
       "inputs": [
         {
-          "indexed": false,
           "internalType": "string",
-          "name": "studentName",
+          "name": "registrationNumber",
           "type": "string"
         },
         {
-          "indexed": false,
+          "internalType": "enum CertificateManagement.CertStatus",
+          "name": "newStatus",
+          "type": "uint8"
+        }
+      ],
+      "name": "setCertificateStatus",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getCertificateStatusCounts",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "valid",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "suspended",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "revoked",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "getTotalCertificatesIssued",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
           "internalType": "string",
-          "name": "examinationNumber",
+          "name": "year",
           "type": "string"
-        },
+        }
+      ],
+      "name": "getCertificatesIssuedByYear",
+      "outputs": [
         {
-          "indexed": false,
+          "internalType": "uint256",
+          "name": "count",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string[]",
+          "name": "yearList",
+          "type": "string[]"
+        }
+      ],
+      "name": "getCertificatesIssuedForYears",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "counts",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
           "internalType": "string",
-          "name": "schoolName",
+          "name": "registrationNumber",
           "type": "string"
+        }
+      ],
+      "name": "getOnChainRecordHash",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "found",
+          "type": "bool"
         },
         {
-          "indexed": false,
-          "internalType": "uint16",
-          "name": "yearOfExamination",
-          "type": "uint16"
-        },
-        {
-          "indexed": false,
           "internalType": "bytes32",
-          "name": "formHash",
+          "name": "recordHash",
           "type": "bytes32"
         }
       ],
-      "name": "FormFourDetailsAdded",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "schoolName",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "schoolCode",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "district",
-          "type": "string"
-        }
-      ],
-      "name": "SecondarySchoolRegistered",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "examinationNumber",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "dateOfApproval",
-          "type": "uint256"
-        }
-      ],
-      "name": "VerificationApproved",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "examinationNumber",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "schoolName",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint16",
-          "name": "yearOfExamination",
-          "type": "uint16"
-        }
-      ],
-      "name": "VerificationRequestAdded",
-      "type": "event"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "allExamNumbers",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "allSchoolKeys",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        }
-      ],
       "stateMutability": "view",
       "type": "function",
       "constant": true
@@ -1673,179 +2089,29 @@ export const CONTRACTS = {
       "inputs": [
         {
           "internalType": "string",
-          "name": "",
+          "name": "registrationNumber",
           "type": "string"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "databaseHash",
+          "type": "bytes32"
         }
       ],
-      "name": "schoolRecords",
+      "name": "checkRecordIntegrity",
       "outputs": [
-        {
-          "internalType": "string",
-          "name": "schoolName",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "schoolCode",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "district",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "zone",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "category",
-          "type": "string"
-        },
         {
           "internalType": "bool",
-          "name": "registered",
+          "name": "matches",
           "type": "bool"
         }
       ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        }
-      ],
-      "name": "studentRecords",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "studentName",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "examinationNumber",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "schoolName",
-          "type": "string"
-        },
-        {
-          "internalType": "uint16",
-          "name": "yearOfExamination",
-          "type": "uint16"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "formHash",
-          "type": "bytes32"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
+      "stateMutability": "nonpayable",
+      "type": "function"
     },
     {
       "inputs": [],
-      "name": "totalSchools",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [],
-      "name": "totalStudents",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "verificationRequests",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "studentName",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "examinationNumber",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "schoolName",
-          "type": "string"
-        },
-        {
-          "internalType": "uint16",
-          "name": "yearOfExamination",
-          "type": "uint16"
-        },
-        {
-          "internalType": "uint256",
-          "name": "dateOfApproval",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string[]",
-          "name": "_studentNames",
-          "type": "string[]"
-        },
-        {
-          "internalType": "string[]",
-          "name": "_examinationNumbers",
-          "type": "string[]"
-        },
-        {
-          "internalType": "string",
-          "name": "_schoolName",
-          "type": "string"
-        },
-        {
-          "internalType": "uint16",
-          "name": "_yearOfExamination",
-          "type": "uint16"
-        }
-      ],
-      "name": "setFormFourDetailsBatch",
+      "name": "completeIntegrityRun",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -1854,296 +2120,32 @@ export const CONTRACTS = {
       "inputs": [
         {
           "internalType": "string",
-          "name": "_examNumber",
+          "name": "registrationNumber",
           "type": "string"
         }
       ],
-      "name": "getFormFourDetails",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "studentName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "examinationNumber",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "schoolName",
-              "type": "string"
-            },
-            {
-              "internalType": "uint16",
-              "name": "yearOfExamination",
-              "type": "uint16"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "formHash",
-              "type": "bytes32"
-            }
-          ],
-          "internalType": "struct Maneb.FormFourDetails",
-          "name": "",
-          "type": "tuple"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "_examNumber",
-          "type": "string"
-        },
-        {
-          "internalType": "uint16",
-          "name": "_year",
-          "type": "uint16"
-        }
-      ],
-      "name": "getStudentDetailsWithoutHash",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "studentName",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "examinationNumber",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "schoolName",
-          "type": "string"
-        },
-        {
-          "internalType": "uint16",
-          "name": "yearOfExamination",
-          "type": "uint16"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "_examNumber",
-          "type": "string"
-        },
-        {
-          "internalType": "uint16",
-          "name": "_year",
-          "type": "uint16"
-        }
-      ],
-      "name": "getFormHash",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "_hash",
-          "type": "bytes32"
-        }
-      ],
-      "name": "getStudentDetailsByHash",
-      "outputs": [
-        {
-          "internalType": "string",
-          "name": "studentName",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "examinationNumber",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "schoolName",
-          "type": "string"
-        },
-        {
-          "internalType": "uint16",
-          "name": "yearOfExamination",
-          "type": "uint16"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [],
-      "name": "getAllFormFourDetails",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "studentName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "examinationNumber",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "schoolName",
-              "type": "string"
-            },
-            {
-              "internalType": "uint16",
-              "name": "yearOfExamination",
-              "type": "uint16"
-            },
-            {
-              "internalType": "bytes32",
-              "name": "formHash",
-              "type": "bytes32"
-            }
-          ],
-          "internalType": "struct Maneb.FormFourDetails[]",
-          "name": "",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string[]",
-          "name": "_schoolNames",
-          "type": "string[]"
-        },
-        {
-          "internalType": "string",
-          "name": "_schoolCode",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_district",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_zone",
-          "type": "string"
-        },
-        {
-          "internalType": "string",
-          "name": "_category",
-          "type": "string"
-        }
-      ],
-      "name": "registerSecondarySchools",
+      "name": "resolveTamper",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "getAllSecondarySchools",
-      "outputs": [
-        {
-          "components": [
-            {
-              "internalType": "string",
-              "name": "schoolName",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "schoolCode",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "district",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "zone",
-              "type": "string"
-            },
-            {
-              "internalType": "string",
-              "name": "category",
-              "type": "string"
-            },
-            {
-              "internalType": "bool",
-              "name": "registered",
-              "type": "bool"
-            }
-          ],
-          "internalType": "struct Maneb.SecondarySchool[]",
-          "name": "",
-          "type": "tuple[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "_district",
-          "type": "string"
-        }
-      ],
-      "name": "getSchoolNamesByDistrict",
-      "outputs": [
-        {
-          "internalType": "string[]",
-          "name": "",
-          "type": "string[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function",
-      "constant": true
-    },
-    {
-      "inputs": [],
-      "name": "getTotalSecondarySchools",
+      "name": "getIntegritySummary",
       "outputs": [
         {
           "internalType": "uint256",
-          "name": "",
+          "name": "checked",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "mismatches",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "lastCheckAt",
           "type": "uint256"
         }
       ],
@@ -2154,13 +2156,29 @@ export const CONTRACTS = {
     {
       "inputs": [
         {
-          "internalType": "bytes32",
-          "name": "_hash",
-          "type": "bytes32"
+          "internalType": "string",
+          "name": "applicantName",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "country",
+          "type": "string"
+        },
+        {
+          "internalType": "string",
+          "name": "award",
+          "type": "string"
         }
       ],
-      "name": "addVerification",
-      "outputs": [],
+      "name": "submitForeignApplication",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "applicationId",
+          "type": "string"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "function"
     },
@@ -2170,53 +2188,174 @@ export const CONTRACTS = {
           "internalType": "uint256",
           "name": "index",
           "type": "uint256"
+        },
+        {
+          "internalType": "enum CertificateManagement.ApplicationStatus",
+          "name": "newStatus",
+          "type": "uint8"
         }
       ],
-      "name": "approveVerification",
+      "name": "updateForeignApplicationStatus",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [],
-      "name": "getAllVerificationRequests",
+      "name": "getTotalForeignApplications",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "getTotalOpenForeignApplications",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "count",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "getOpenForeignApplications",
       "outputs": [
         {
           "components": [
             {
               "internalType": "string",
-              "name": "studentName",
+              "name": "applicationId",
               "type": "string"
             },
             {
               "internalType": "string",
-              "name": "examinationNumber",
+              "name": "applicantName",
               "type": "string"
             },
             {
               "internalType": "string",
-              "name": "schoolName",
+              "name": "country",
               "type": "string"
             },
             {
-              "internalType": "uint16",
-              "name": "yearOfExamination",
-              "type": "uint16"
+              "internalType": "string",
+              "name": "award",
+              "type": "string"
+            },
+            {
+              "internalType": "enum CertificateManagement.ApplicationStatus",
+              "name": "status",
+              "type": "uint8"
             },
             {
               "internalType": "uint256",
-              "name": "dateOfApproval",
+              "name": "submittedAt",
               "type": "uint256"
             }
           ],
-          "internalType": "struct Maneb.VerificationRequest[]",
-          "name": "",
+          "internalType": "struct CertificateManagement.ForeignApplication[]",
+          "name": "result",
           "type": "tuple[]"
         }
       ],
       "stateMutability": "view",
       "type": "function",
       "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "registrationNumber",
+          "type": "string"
+        }
+      ],
+      "name": "logEmployerCheck",
+      "outputs": [
+        {
+          "internalType": "enum CertificateManagement.CheckResult",
+          "name": "result",
+          "type": "uint8"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getEmployerChecksToday",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "count",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "limit",
+          "type": "uint256"
+        }
+      ],
+      "name": "getLatestEmployerChecks",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "registrationNumber",
+              "type": "string"
+            },
+            {
+              "internalType": "enum CertificateManagement.CheckResult",
+              "name": "result",
+              "type": "uint8"
+            },
+            {
+              "internalType": "uint256",
+              "name": "checkedAt",
+              "type": "uint256"
+            }
+          ],
+          "internalType": "struct CertificateManagement.EmployerCheck[]",
+          "name": "result",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "getTotalEmployerChecks",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
     }
-  ], }
-}
+  ],}}

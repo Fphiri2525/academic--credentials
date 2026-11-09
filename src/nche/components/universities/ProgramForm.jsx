@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import styles from './UniversitiesPage.module.css';
 
-export default function ProgramForm({ 
-  universities, 
-  onSubmit, 
-  onCancel, 
-  isSubmitting, 
+export default function ProgramForm({
+  universities,
+  onSubmit,
+  onCancel,
+  isSubmitting,
   isConnected,
-  defaultInstitution 
+  defaultInstitution,
 }) {
   const [form, setForm] = useState({
     institutionName: defaultInstitution || '',
@@ -28,7 +28,14 @@ export default function ProgramForm({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(form);
+    const clean = {
+      institutionName: form.institutionName.trim(),
+      programName: form.programName.trim().replace(/\s+/g, ' '),
+      programType: form.programType.trim(),
+      accreditationDate: form.accreditationDate.trim(),
+    };
+    if (!clean.programName) return; // blocks whitespace-only names
+    onSubmit(clean);
   };
 
   return (
@@ -48,8 +55,8 @@ export default function ProgramForm({
             {universities.length > 0 && (
               <option disabled>--- Accredited Universities ---</option>
             )}
-            {universities.map((u) => (
-              <option key={u.id} value={u.name}>{u.name}</option>
+            {universities.map((u, i) => (
+              <option key={`${u.name}-${i}`} value={u.name}>{u.name}</option>
             ))}
           </select>
           <label>Institution Name *</label>
@@ -62,6 +69,8 @@ export default function ProgramForm({
             value={form.programName}
             onChange={handleChange}
             placeholder=" "
+            pattern=".*\S.*"
+            title="Program name cannot be only spaces"
             required
             disabled={isSubmitting}
           />

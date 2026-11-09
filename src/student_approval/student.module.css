@@ -28,7 +28,6 @@
   overflow-x: clip;
 }
 
-
 .shell,
 .shell *,
 .shell *::before,
@@ -421,7 +420,7 @@
   gap: 16px;
 }
 
-.heroHead>div {
+.heroHead > div {
   min-width: 0;
 }
 
@@ -467,7 +466,7 @@
   border-radius: 10px;
 }
 
-.feature>div {
+.feature > div {
   min-width: 0;
 }
 
@@ -533,6 +532,8 @@
   margin-top: 4px;
 }
 
+/* Shared form styles */
+
 .form {
   display: flex;
   flex-direction: column;
@@ -582,7 +583,6 @@ select.input {
   padding-top: 20px;
   border-top: 1px solid var(--border);
 }
-
 
 .btnPrimary,
 .btnGhost,
@@ -701,7 +701,7 @@ select.input {
   border-radius: 10px;
 }
 
-.detailRow>div {
+.detailRow > div {
   min-width: 0;
 }
 
@@ -725,6 +725,7 @@ select.input {
   color: var(--text);
   word-break: break-word;
 }
+
 .loading {
   display: flex;
   flex-direction: column;
@@ -761,9 +762,8 @@ select.input {
   background: #fff;
 }
 
-/* ============================================================
-   Certificate List & Empty State
-   ============================================================ */
+/* Certificate List & Empty State */
+
 .emptyState {
   display: flex;
   flex-direction: column;
@@ -917,6 +917,8 @@ select.input {
   color: var(--text);
 }
 
+/* Modal */
+
 .overlay {
   position: fixed;
   inset: 0;
@@ -979,7 +981,8 @@ select.input {
   padding-top: 12px;
 }
 
-/* Keyframes must live outside media queries */
+/* Keyframes */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -990,10 +993,11 @@ select.input {
   }
 }
 
+/* Responsive layouts */
+
 @media (max-width: 1024px) {
   .mainCol {
     margin-left: 0;
-    /* Sidebar becomes a drawer */
   }
 
   .sidebar {
@@ -1061,7 +1065,7 @@ select.input {
     flex-direction: column-reverse;
   }
 
-  .formActions>button {
+  .formActions > button {
     width: 100%;
   }
 
@@ -1069,7 +1073,7 @@ select.input {
     flex-direction: column-reverse;
   }
 
-  .modalActions>button {
+  .modalActions > button {
     width: 100%;
   }
 
@@ -1096,7 +1100,6 @@ select.input {
 
   .stepLabel {
     display: none;
-    /* Hide text on small screens, keep dots */
   }
 
   .step {

@@ -1,16 +1,16 @@
-﻿import { certByStatus } from '../../constants/dashboard';
-import styles from './Dashboard.module.css';
+﻿import styles from './Dashboard.module.css';
 
-export default function CertStatusBar() {
-  const total = certByStatus.reduce((n, c) => n + c.value, 0);
+// `data` is [{ label, value, color }]. Dashboard passes live numbers from the contract.
+export default function CertStatusBar({ data = [] }) {
+  const total = data.reduce((n, c) => n + c.value, 0);
 
   return (
     <div className={styles.card}>
       <h2 className={styles.cardTitle}>Certificates by status</h2>
 
       <div className={styles.progressList}>
-        {certByStatus.map((c) => {
-          const pct = (c.value / total) * 100;
+        {data.map((c) => {
+          const pct = total ? (c.value / total) * 100 : 0;
           return (
             <div key={c.label} className={styles.progressRow}>
               <div className={styles.progressHead}>

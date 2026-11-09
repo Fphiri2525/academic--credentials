@@ -1,145 +1,207 @@
-// src/student_approval/StudentDetails.jsx
-import { useNavigate, useLocation } from "react-router-dom";
-import {
-  CheckCircle2,
-  User,
-  Hash,
-  School,
-  Calendar,
-  AlertCircle,
-} from "lucide-react";
-import StudentStepper from "./StudentStepper";
-import { saveCert } from "./certHistory";
+
+import React, { useState } from "react";
+import { Search, ArrowLeft, AlertCircle } from "lucide-react";
+
 import styles from "./Student.module.css";
 
-export default function StudentDetails() {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { studentDetails, educationLevel } = location.state || {};
+export default function StudentLookupForm({
+  onBack,
+  onSubmitApplication,
+  isConnected
+}) {
+  const currentYear = new Date().getFullYear();
 
-  if (!studentDetails || !educationLevel) {
-    return (
-      <>
-        <StudentStepper current="details" />
-        <div className={styles.card}>
-          <div className={styles.heroHead}>
-            <AlertCircle size={26} className={styles.accentIcon} />
-            <div>
-              <h2 className={styles.cardTitle}>No certificate to review yet</h2>
-              <p className={styles.cardSub}>
-                Verify your details first to generate a QR code.
-              </p>
-            </div>
-          </div>
-          <div className={styles.formActions}>
-            <button
-              className={styles.btnPrimary}
-              onClick={() => navigate("/student/lookup")}
-            >
-              Start verification
-            </button>
-          </div>
-        </div>
-      </>
-    );
-  }
+  const [formData, setFormData] = useState({
+    registrationNumber: "",
+    yearOfAward: ""
+  });
 
-  const isSecondary = educationLevel === "secondary";
-  const fields = isSecondary
-    ? [
-        {
-          icon: User,
-          label: "Student name",
-          value: studentDetails.studentName,
-        },
-        {
-          icon: Hash,
-          label: "Examination number",
-          value: studentDetails.examinationNumber,
-        },
-        { icon: School, label: "School", value: studentDetails.schoolName },
-        {
-          icon: Calendar,
-          label: "Exam year",
-          value: studentDetails.yearOfExamination,
-        },
-      ]
-    : [
-        {
-          icon: User,
-          label: "Student name",
-          value: studentDetails.studentName,
-        },
-        {
-          icon: Hash,
-          label: "Registration",
-          value: studentDetails.registrationNumber,
-        },
-        {
-          icon: School,
-          label: "Institution",
-          value: studentDetails.institutionName,
-        },
-        {
-          icon: School,
-          label: "Program",
-          value: studentDetails.programOfStudy,
-        },
-        { icon: CheckCircle2, label: "Award", value: studentDetails.award },
-        {
-          icon: Calendar,
-          label: "Graduated",
-          value: studentDetails.yearOfGraduation,
-        },
-      ];
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleConfirm = () => {
-    const id = saveCert(studentDetails, educationLevel);
-    navigate(`/student/qrcode/${id}`, {
-      state: { studentDetails, educationLevel },
-    });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((previous) => ({
+      ...previous,
+      [name]: value
+    }));
+
+    setError("");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!isConnected) {
+      setError("Please connect your wallet before continuing.");
+      return;
+    }
+
+    const { registrationNumber, yearOfAward } = formData;
+
+    if (!registrationNumber.trim() || !yearOfAward) {
+      setError("Please enter your registration number and year of award.");
+      return;
+    }
+
+    const awardYear = Number(yearOfAward);
+
+    if (
+      !/^\d{4}$/.test(yearOfAward) ||
+      awardYear < 1900 ||
+      awardYear > currentYear
+    ) {
+      setError(
+        `Please enter a valid year between 1900 and ${currentYear}.`
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const applicationData = {
+        registrationNumber: registrationNumber.trim(),
+        yearOfAward: awardYear
+      };
+
+      if (typeof onSubmitApplication !== "function") {
+        throw new Error("Submission handler is not configured.");
+      }
+
+      await onSubmitApplication(applicationData);
+
+    } catch (err) {
+      console.error("Student lookup error:", err);
+
+      setError(
+        err.message || "Unable to process your request. Please try again."
+      );
+
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <>
-      <StudentStepper current="details" />
+    <div className={styles.card}>
 
-      <div className={styles.card}>
-        <div className={styles.heroHead}>
-          <CheckCircle2 size={26} className={styles.successIcon} />
-          <div>
-            <h2 className={styles.cardTitle}>Review your details</h2>
-            <p className={styles.cardSub}>
-              These are the details we found on-chain. Confirm to generate your
-              QR code.
-            </p>
-          </div>
+      <div className={styles.applicationHeader}>
+        <div className={styles.applicationIcon}>
+          <Search size={30} />
         </div>
 
-        <div className={styles.detailsGrid}>
-          {fields.map(({ icon: Icon, label, value }) => (
-            <div key={label} className={styles.detailRow}>
-              <Icon size={16} className={styles.detailIcon} />
-              <div>
-                <div className={styles.detailLabel}>{label}</div>
-                <div className={styles.detailValue}>{value || "—"}</div>
-              </div>
-            </div>
-          ))}
+        <h2 className={styles.cardTitle}>
+          Student Certificate Verification
+        </h2>
+
+        <p className={styles.applicationDescription}>
+          Enter your registration number and year of award
+          to proceed with certificate verification.
+        </p>
+      </div>
+
+      {!isConnected && (
+        <div className={`${styles.alert} ${styles.alertWarning}`}>
+          <AlertCircle size={18} />
+          <span>
+            Please connect your wallet before continuing.
+          </span>
+        </div>
+      )}
+
+      {error && (
+        <div className={`${styles.alert} ${styles.alertDanger}`}>
+          <AlertCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className={styles.form}>
+
+        <div className={styles.applicationSection}>
+
+          <Field label="Registration Number *">
+            <input
+              type="text"
+              name="registrationNumber"
+              className={styles.input}
+              value={formData.registrationNumber}
+              onChange={handleChange}
+              placeholder="Enter your registration number"
+              required
+              disabled={loading}
+            />
+          </Field>
+
+          <Field label="Year of Award / Class of *">
+            <input
+              type="number"
+              name="yearOfAward"
+              className={styles.input}
+              value={formData.yearOfAward}
+              onChange={handleChange}
+              placeholder={`e.g. ${currentYear}`}
+              min="1900"
+              max={currentYear}
+              step="1"
+              required
+              disabled={loading}
+            />
+
+            <small>
+              Enter the year you received your qualification.
+              Maximum year: {currentYear}.
+            </small>
+          </Field>
+
         </div>
 
         <div className={styles.formActions}>
+
           <button
+            type="button"
             className={styles.btnGhost}
-            onClick={() => navigate("/student/lookup")}
+            onClick={onBack}
+            disabled={loading}
           >
+            <ArrowLeft size={16} />
             Back
           </button>
-          <button className={styles.btnPrimary} onClick={handleConfirm}>
-            <CheckCircle2 size={16} /> Confirm &amp; generate QR code
+
+          <button
+            type="submit"
+            className={styles.btnPrimary}
+            disabled={loading || !isConnected}
+          >
+            {loading ? (
+              "Processing..."
+            ) : (
+              <>
+                <Search size={17} />
+                Verify Student
+              </>
+            )}
           </button>
+
         </div>
-      </div>
-    </>
+
+      </form>
+
+    </div>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <div className={styles.field}>
+      <label className={styles.label}>
+        {label}
+      </label>
+
+      {children}
+    </div>
   );
 }

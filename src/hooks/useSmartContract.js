@@ -9,6 +9,21 @@ import {
   getNetworkInfo 
 } from '../web3service';
 import contractUtils from '../utilis/contractutils';
+
+// Stops a subscription whatever shape it has (Promise, .remove, .unsubscribe, .off, or a function)
+export const stopSubscription = async (sub) => {
+  try {
+    const s = await sub;
+    if (!s) return;
+    if (typeof s.remove === 'function') s.remove();
+    else if (typeof s.unsubscribe === 'function') await s.unsubscribe();
+    else if (typeof s.off === 'function') s.off();
+    else if (typeof s === 'function') s();
+  } catch (err) {
+    console.warn('Failed to stop event subscription:', err);
+  }
+};
+
 // Custom hook for smart contract interactions
 export const useSmartContract = () => {
   const [loading, setLoading] = useState(false);
@@ -88,20 +103,24 @@ export const useSmartContract = () => {
 
   const listenToEventWithCleanup = useCallback((contractName, eventName, callback, options = {}) => {
     const eventKey = `${contractName}:${eventName}`;
-    
+
     if (eventListeners.current.has(eventKey)) {
-      eventListeners.current.get(eventKey).remove();
+      stopSubscription(eventListeners.current.get(eventKey));
+      eventListeners.current.delete(eventKey);
     }
 
     const subscription = listenToEvent(contractName, eventName, callback, options);
     eventListeners.current.set(eventKey, subscription);
+
+    // Avoid "unhandled rejection" if the subscription is a Promise that fails
+    Promise.resolve(subscription).catch((err) => console.warn(`Event ${eventKey} failed:`, err));
 
     return subscription;
   }, []);
 
   const cleanupEventListeners = useCallback(() => {
     eventListeners.current.forEach((subscription, key) => {
-      subscription.remove();
+      stopSubscription(subscription);
       console.log(`Cleaned up event listener: ${key}`);
     });
     eventListeners.current.clear();
@@ -318,75 +337,148 @@ export const useUserManagement = () => {
 };
 
 // Hook for accreditation management operations
+// Contract enum: 0 = Active, 1 = Suspended
 export const useAccreditationManagement = () => {
   const contract = useSmartContract();
+  // sendTransaction / callContract are stable (useCallback with no deps),
+  // so depending on them avoids re-creating every function on each render.
+  const { sendTransaction, callContract } = contract;
+
+  const normalizeStatus = (value) => {
+    const s = Number(value ?? 0);
+    return s === 1 ? 1 : 0;
+  };
+
+  const mapUniversity = (u, index) => ({
+    id: index,
+    name: u.name ?? u[0] ?? '',
+    category: u.category ?? u[1] ?? '',
+    contactInfo: u.contactInfo ?? u[2] ?? '',
+    status: normalizeStatus(u.status ?? u[3]),
+  });
+
+  const mapProgram = (p, index) => {
+    // Safety net if an older contract returned plain program-name strings
+    if (typeof p === 'string') {
+      return {
+        id: index,
+        institutionName: '',
+        programName: p,
+        programType: '',
+        accreditationDate: '',
+        status: 0,
+      };
+    }
+    return {
+      id: index,
+      institutionName: p.institutionName ?? p[0] ?? '',
+      programName: p.programName ?? p[1] ?? '',
+      programType: p.programType ?? p[2] ?? '',
+      accreditationDate: p.accreditationDate ?? p[3] ?? '',
+      status: normalizeStatus(p.status ?? p[4]),
+    };
+  };
 
   const addAccreditedUniversity = useCallback(async (universityData) => {
-    return await contract.sendTransaction('accreditationManagement', 'addAccreditedUniversity', [
+    return await sendTransaction('accreditationManagement', 'addAccreditedUniversity', [
       universityData.institutionName,
       universityData.category,
       universityData.contactInfo
     ], { gas: 500000 });
-  }, [contract]);
+  }, [sendTransaction]);
 
   const addProgram = useCallback(async (programData) => {
-    return await contract.sendTransaction('accreditationManagement', 'addProgram', [
+    return await sendTransaction('accreditationManagement', 'addProgram', [
       programData.institutionName,
       programData.programName,
       programData.programType,
       programData.accreditationDate
     ], { gas: 500000 });
-  }, [contract]);
+  }, [sendTransaction]);
 
   const getAllAccreditedUniversities = useCallback(async () => {
     try {
-      const data = await contract.callContract('accreditationManagement', 'getAllAccreditedUniversities');
-      
-      console.log('Raw data from getAllAccreditedUniversities:', data);
-      
+      const data = await callContract('accreditationManagement', 'getAllAccreditedUniversities');
+
       if (Array.isArray(data)) {
-        return data.map((university, index) => ({
-          id: index,
-          name: university.name || university[0] || '',
-          category: university.category || university[1] || '',
-          contactInfo: university.contactInfo || university[2] || ''
-        }));
+        return data.map(mapUniversity);
       }
-      
+
       if (data && typeof data === 'object') {
-        return [{
-          id: 0,
-          name: data.name || data[0] || '',
-          category: data.category || data[1] || '',
-          contactInfo: data.contactInfo || data[2] || ''
-        }];
+        return [mapUniversity(data, 0)];
       }
-      
+
       console.warn('Unexpected data format from getAllAccreditedUniversities:', data);
       return [];
     } catch (error) {
       console.error('Error in getAllAccreditedUniversities:', error);
       return [];
     }
-  }, [contract]);
+  }, [callContract]);
 
+  // NOTE: the contract's getProgramsByUniversity returns ONLY Active programs.
+  // Use getAllProgramsByUniversity (below) when you also need Suspended ones.
   const getProgramsByUniversity = useCallback(async (universityName) => {
-    const programs = await contract.callContract('accreditationManagement', 'getProgramsByUniversity', [universityName]);
-    return Array.isArray(programs) ? programs.map((program, index) => ({
-      id: index,
-      name: program || ''
-    })) : [];
-  }, [contract]);
+    const programs = await callContract('accreditationManagement', 'getProgramsByUniversity', [universityName]);
+    return Array.isArray(programs) ? programs.map(mapProgram) : [];
+  }, [callContract]);
+
+  // Suspend (1) or reinstate (0) a university. Wallet must be the owner or an authorized institution.
+  const updateUniversityStatus = useCallback(async ({ name, status }) => {
+    const cleanName = (name || '').trim();
+    if (!cleanName) throw new Error('University name is required');
+
+    const s = Number(status);
+    if (s !== 0 && s !== 1) throw new Error('Status must be 0 (Active) or 1 (Suspended)');
+
+    return await sendTransaction('accreditationManagement', 'updateUniversityStatus', [
+      cleanName,
+      s
+    ], { gas: 800000 });
+  }, [sendTransaction]);
+
+  // Suspend (1) or reinstate (0) a program. Wallet must be the owner or an authorized institution.
+  const updateProgramStatus = useCallback(async ({ institutionName, programName, status }) => {
+    const cleanInstitution = (institutionName || '').trim();
+    const cleanProgram = (programName || '').trim();
+    if (!cleanInstitution) throw new Error('Institution name is required');
+    if (!cleanProgram) throw new Error('Program name is required');
+
+    const s = Number(status);
+    if (s !== 0 && s !== 1) throw new Error('Status must be 0 (Active) or 1 (Suspended)');
+
+    return await sendTransaction('accreditationManagement', 'updateProgramStatus', [
+      cleanInstitution,
+      cleanProgram,
+      s
+    ], { gas: 800000 });
+  }, [sendTransaction]);
+
+  // Active AND Suspended programs. Needs getAllProgramsByUniversity in the contract.
+  const getAllProgramsByUniversity = useCallback(async (universityName) => {
+    const programs = await callContract('accreditationManagement', 'getAllProgramsByUniversity', [universityName]);
+    return Array.isArray(programs) ? programs.map(mapProgram) : [];
+  }, [callContract]);
+
+  const getTotalActiveAccreditedUniversities = useCallback(async () => {
+    try {
+      const total = await callContract('accreditationManagement', 'getTotalActiveAccreditedUniversities');
+      return Number(total) || 0;
+    } catch (error) {
+      console.error('Error fetching total active accredited universities:', error);
+      return 0;
+    }
+  }, [callContract]);
 
   const getTotalAccreditedUniversities = useCallback(async () => {
     try {
-      const total = await contract.callContract('accreditationManagement', 'getTotalAccreditedUniversities');
+      const total = await callContract('accreditationManagement', 'getTotalAccreditedUniversities');
       return parseInt(total) || 0;
     } catch (error) {
       console.error('Error fetching total accredited universities:', error);
       return 0;
     }
-  }, [contract]);
+  }, [callContract]);
 
   return {
     ...contract,
@@ -394,7 +486,11 @@ export const useAccreditationManagement = () => {
     addProgram,
     getAllAccreditedUniversities,
     getProgramsByUniversity,
-    getTotalAccreditedUniversities
+    updateUniversityStatus,
+    updateProgramStatus,
+    getAllProgramsByUniversity,
+    getTotalAccreditedUniversities,
+    getTotalActiveAccreditedUniversities
   };
 };
 
@@ -407,11 +503,11 @@ export const useCertificateManagement = () => {
     
     const params = [
       graduateData.universityName,
-      graduateData.studentNames,
       graduateData.programOfStudy,
       graduateData.award,
       graduateData.yearOfGraduation,
-      graduateData.registrationNumbers
+      graduateData.registrationNumbers,
+      graduateData.studentNames
     ];
 
     return await contract.sendTransaction('certificateManagement', 'addUniversityGraduates', params, {
@@ -421,6 +517,47 @@ export const useCertificateManagement = () => {
       maxPriorityFeePerGas: options.maxPriorityFeePerGas,
       ...options
     });
+  }, [contract]);
+
+  // ---------------------------------------------------------------
+  // NEW: registers an approved foreign certificate on-chain.
+  // Contract: addForeignVerification(universityName, studentName,
+  //   programOfStudy, award, yearOfGraduation, registrationNumber)
+  // ---------------------------------------------------------------
+  const addForeignVerification = useCallback(async (data, options = {}) => {
+    const clean = (v) => String(v ?? '').trim();
+
+    const args = [
+      clean(data?.universityName),
+      clean(data?.studentName),
+      clean(data?.programOfStudy),
+      clean(data?.award),
+      clean(data?.yearOfGraduation),
+      clean(data?.registrationNumber),
+    ];
+
+    const labels = [
+      'University name',
+      'Student name',
+      'Program of study',
+      'Award',
+      'Year of graduation',
+      'Registration number',
+    ];
+    const missing = labels.filter((_, i) => !args[i]);
+    if (missing.length) {
+      throw new Error(`Missing required fields: ${missing.join(', ')}`);
+    }
+
+    console.log('🌍 addForeignVerification called with:', args);
+
+    const result = await contract.sendTransaction('certificateManagement', 'addForeignVerification', args, {
+      gas: options.gas || 800000,
+      ...options,
+    });
+
+    console.log('✅ Foreign certificate recorded on blockchain:', result?.transactionHash);
+    return result;
   }, [contract]);
 
   const getGraduatesByUniversityName = useCallback(async (universityName) => {
@@ -631,7 +768,6 @@ export const useCertificateManagement = () => {
     }
   }, [contract]);
 
-  // FIXED: Single declaration of addVerificationRequestByQRCode
   const addVerificationRequestByQRCode = useCallback(async (qrCode, verifierInfo = '') => {
     try {
       console.log('📝 Adding verification request by QR code:', { qrCode, verifierInfo });
@@ -684,7 +820,6 @@ export const useCertificateManagement = () => {
     }
   }, [contract]);
 
-  // FIXED: addVerificationRequest with correct parameter order and types
   const addVerificationRequest = useCallback(async (verificationData) => {
     try {
       console.log('📝 Adding verification request with data:', verificationData);
@@ -773,6 +908,7 @@ export const useCertificateManagement = () => {
   return {
     ...contract,
     addUniversityGraduates,
+    addForeignVerification,
     getGraduatesByUniversityName,
     getStudentDetailsByRegAndAward,
     issueCertificate,
@@ -790,6 +926,252 @@ export const useCertificateManagement = () => {
     getTotalViewQRCodes,
     addVerificationRequestByQRCode,
     addVerificationRequest
+  };
+};
+
+// ---------------------------------------------------------------------
+// Enums (must match the Solidity enums in CertificateManagement)
+// ---------------------------------------------------------------------
+export const CERT_STATUS = { VALID: 0, SUSPENDED: 1, REVOKED: 2 };
+export const CHECK_RESULT = { VALID: 0, SUSPENDED: 1, REVOKED: 2, TAMPERED: 3, NOT_FOUND: 4 };
+export const APPLICATION_STATUS = {
+  PENDING: 0,
+  UNDER_REVIEW: 1,
+  MORE_INFO_NEEDED: 2,
+  APPROVED: 3,
+  REJECTED: 4
+};
+
+const APPLICATION_STATUS_LABELS = ['PENDING', 'UNDER_REVIEW', 'MORE_INFO_NEEDED', 'APPROVED', 'REJECTED'];
+const CHECK_RESULT_LABELS = ['VALID', 'SUSPENDED', 'REVOKED', 'TAMPERED', 'NOT_FOUND'];
+
+// web3 v4 returns uint256 / enums as BigInt, so always convert before using them
+const toNum = (v) => {
+  const n = Number(v ?? 0);
+  return Number.isFinite(n) ? n : 0;
+};
+
+// Read a value from a result that may have named fields or only numeric indexes
+const pick = (obj, name, index) => (obj?.[name] ?? obj?.[index]);
+
+const toBytes32 = (value) => {
+  const v = String(value || '').trim();
+  const hex = v.startsWith('0x') ? v : `0x${v}`;
+  if (hex.length !== 66) {
+    throw new Error(`Invalid hash length: expected 66 characters, got ${hex.length}`);
+  }
+  return hex;
+};
+
+// Hook for the admin dashboard (CertificateManagement dashboard functions)
+export const useDashboardManagement = () => {
+  const contract = useSmartContract();
+  // sendTransaction / callContract are stable, so these callbacks stay stable too
+  const { sendTransaction, callContract } = contract;
+
+  // ---------- Totals ----------
+  const getTotalGraduates = useCallback(async () => {
+    return toNum(await callContract('certificateManagement', 'getTotalGraduates'));
+  }, [callContract]);
+
+  // "Certificates issued" = QR codes registered in the qrCodes list
+  const getTotalCertificatesIssued = useCallback(async () => {
+    return toNum(await callContract('certificateManagement', 'getTotalCertificatesIssued'));
+  }, [callContract]);
+
+  // Per-university graduate count (the contract takes the university name)
+  const getGraduateCountForUniversity = useCallback(async (universityName) => {
+    return toNum(
+      await callContract('certificateManagement', 'getTotalGraduatesByUniversityName', [universityName])
+    );
+  }, [callContract]);
+
+  // ---------- Certificate status ----------
+  const getCertificateStatusCounts = useCallback(async () => {
+    const data = await callContract('certificateManagement', 'getCertificateStatusCounts');
+    return {
+      valid: toNum(pick(data, 'valid', 0)),
+      suspended: toNum(pick(data, 'suspended', 1)),
+      revoked: toNum(pick(data, 'revoked', 2))
+    };
+  }, [callContract]);
+
+  // status: 0 = Valid, 1 = Suspended, 2 = Revoked. Wallet must be owner or authorized.
+  const setCertificateStatus = useCallback(async (registrationNumber, status) => {
+    const reg = (registrationNumber || '').trim();
+    if (!reg) throw new Error('Registration number is required');
+    const s = Number(status);
+    if (![0, 1, 2].includes(s)) throw new Error('Status must be 0 (Valid), 1 (Suspended) or 2 (Revoked)');
+
+    return await sendTransaction('certificateManagement', 'setCertificateStatus', [reg, s], { gas: 300000 });
+  }, [sendTransaction]);
+
+  // ---------- Certificates issued per year ----------
+  const getCertificatesIssuedByYear = useCallback(async (year) => {
+    return toNum(await callContract('certificateManagement', 'getCertificatesIssuedByYear', [String(year)]));
+  }, [callContract]);
+
+  // Returns [{ year, value }] in the same order as the years you pass in
+  const getCertificatesIssuedForYears = useCallback(async (years) => {
+    const yearList = (years || []).map(String);
+    const counts = await callContract('certificateManagement', 'getCertificatesIssuedForYears', [yearList]);
+    const list = Array.isArray(counts) ? counts : [];
+    return yearList.map((year, i) => ({ year, value: toNum(list[i]) }));
+  }, [callContract]);
+
+  // ---------- Blockchain integrity ----------
+  const getIntegritySummary = useCallback(async () => {
+    const data = await callContract('certificateManagement', 'getIntegritySummary');
+    return {
+      checked: toNum(pick(data, 'checked', 0)),
+      mismatches: toNum(pick(data, 'mismatches', 1)),
+      lastCheckAt: toNum(pick(data, 'lastCheckAt', 2)) // unix seconds, 0 = never
+    };
+  }, [callContract]);
+
+  const getOnChainRecordHash = useCallback(async (registrationNumber) => {
+    const data = await callContract('certificateManagement', 'getOnChainRecordHash', [
+      (registrationNumber || '').trim()
+    ]);
+    return {
+      found: Boolean(pick(data, 'found', 0)),
+      recordHash: pick(data, 'recordHash', 1) || ''
+    };
+  }, [callContract]);
+
+  // Compares one record's database hash with the on-chain hash. Raises a tamper alert on mismatch.
+  const checkRecordIntegrity = useCallback(async (registrationNumber, databaseHash) => {
+    const reg = (registrationNumber || '').trim();
+    if (!reg) throw new Error('Registration number is required');
+    return await sendTransaction(
+      'certificateManagement',
+      'checkRecordIntegrity',
+      [reg, toBytes32(databaseHash)],
+      { gas: 300000 }
+    );
+  }, [sendTransaction]);
+
+  // Records the time a full integrity run finished
+  const completeIntegrityRun = useCallback(async () => {
+    return await sendTransaction('certificateManagement', 'completeIntegrityRun', [], { gas: 100000 });
+  }, [sendTransaction]);
+
+  const resolveTamper = useCallback(async (registrationNumber) => {
+    const reg = (registrationNumber || '').trim();
+    if (!reg) throw new Error('Registration number is required');
+    return await sendTransaction('certificateManagement', 'resolveTamper', [reg], { gas: 200000 });
+  }, [sendTransaction]);
+
+  // ---------- Foreign applications ----------
+  const submitForeignApplication = useCallback(async ({ applicantName, country, award }) => {
+    if (!(applicantName || '').trim()) throw new Error('Applicant name is required');
+    return await sendTransaction(
+      'certificateManagement',
+      'submitForeignApplication',
+      [applicantName.trim(), (country || '').trim(), (award || '').trim()],
+      { gas: 400000 }
+    );
+  }, [sendTransaction]);
+
+  const getTotalForeignApplications = useCallback(async () => {
+    return toNum(await callContract('certificateManagement', 'getTotalForeignApplications'));
+  }, [callContract]);
+
+  const getTotalOpenForeignApplications = useCallback(async () => {
+    return toNum(await callContract('certificateManagement', 'getTotalOpenForeignApplications'));
+  }, [callContract]);
+
+  // Open applications, newest first. The contract does not return the array index,
+  // but ids are "FA-<index + 1>", so the index is worked out from the id.
+  const getOpenForeignApplications = useCallback(async () => {
+    const data = await callContract('certificateManagement', 'getOpenForeignApplications');
+    if (!Array.isArray(data)) return [];
+
+    return data.map((a) => {
+      const applicationId = String(pick(a, 'applicationId', 0) ?? '');
+      const status = toNum(pick(a, 'status', 4));
+      const submittedAt = toNum(pick(a, 'submittedAt', 5));
+      return {
+        applicationId,
+        index: Math.max(0, parseInt(applicationId.replace(/\D/g, ''), 10) - 1),
+        applicantName: String(pick(a, 'applicantName', 1) ?? ''),
+        country: String(pick(a, 'country', 2) ?? ''),
+        award: String(pick(a, 'award', 3) ?? ''),
+        status,
+        statusLabel: APPLICATION_STATUS_LABELS[status] || 'PENDING',
+        submittedAt,
+        submittedDate: submittedAt ? new Date(submittedAt * 1000).toLocaleDateString() : ''
+      };
+    });
+  }, [callContract]);
+
+  // index = array index (id number minus 1); status: see APPLICATION_STATUS
+  const updateForeignApplicationStatus = useCallback(async (index, status) => {
+    const i = Number(index);
+    const s = Number(status);
+    if (!Number.isInteger(i) || i < 0) throw new Error('A valid application index is required');
+    if (![0, 1, 2, 3, 4].includes(s)) throw new Error('Invalid application status');
+    return await sendTransaction('certificateManagement', 'updateForeignApplicationStatus', [i, s], { gas: 200000 });
+  }, [sendTransaction]);
+
+  // ---------- Employer checks ----------
+  // Logs a check on-chain and returns the transaction result
+  const logEmployerCheck = useCallback(async (registrationNumber) => {
+    const reg = (registrationNumber || '').trim();
+    if (!reg) throw new Error('Registration number is required');
+    return await sendTransaction('certificateManagement', 'logEmployerCheck', [reg], { gas: 300000 });
+  }, [sendTransaction]);
+
+  const getEmployerChecksToday = useCallback(async () => {
+    return toNum(await callContract('certificateManagement', 'getEmployerChecksToday'));
+  }, [callContract]);
+
+  const getTotalEmployerChecks = useCallback(async () => {
+    return toNum(await callContract('certificateManagement', 'getTotalEmployerChecks'));
+  }, [callContract]);
+
+  // Newest first
+  const getLatestEmployerChecks = useCallback(async (limit = 10) => {
+    const data = await callContract('certificateManagement', 'getLatestEmployerChecks', [Number(limit)]);
+    if (!Array.isArray(data)) return [];
+
+    return data.map((c, i) => {
+      const result = toNum(pick(c, 'result', 1));
+      const checkedAt = toNum(pick(c, 'checkedAt', 2));
+      return {
+        id: i,
+        registrationNumber: String(pick(c, 'registrationNumber', 0) ?? ''),
+        result,
+        resultLabel: CHECK_RESULT_LABELS[result] || 'VALID',
+        checkedAt,
+        checkedDate: checkedAt ? new Date(checkedAt * 1000).toLocaleString() : ''
+      };
+    });
+  }, [callContract]);
+
+  return {
+    ...contract,
+    getTotalGraduates,
+    getTotalCertificatesIssued,
+    getGraduateCountForUniversity,
+    getCertificateStatusCounts,
+    setCertificateStatus,
+    getCertificatesIssuedByYear,
+    getCertificatesIssuedForYears,
+    getIntegritySummary,
+    getOnChainRecordHash,
+    checkRecordIntegrity,
+    completeIntegrityRun,
+    resolveTamper,
+    submitForeignApplication,
+    getTotalForeignApplications,
+    getTotalOpenForeignApplications,
+    getOpenForeignApplications,
+    updateForeignApplicationStatus,
+    logEmployerCheck,
+    getEmployerChecksToday,
+    getTotalEmployerChecks,
+    getLatestEmployerChecks
   };
 };
 
@@ -1197,15 +1579,13 @@ export const useManebContract = () => {
         .map(([year, count]) => ({ year: Number(year), count }))
         .sort((a, b) => b.year - a.year);
 
-      const statistics = {
+      return {
         totalStudents,
         totalSchools,
         yearRange,
         schoolStats,
         yearStats
       };
-
-      return statistics;
     } catch (error) {
       console.error('❌ Error calculating Form Four statistics:', error);
       return {
@@ -1240,7 +1620,19 @@ export const useManebContract = () => {
         throw new Error('Year of examination must be a valid number between 1900 and 2100');
       }
 
-      
+      // The original file used `result` here without ever defining it.
+      // Adjust the method name / parameter order if your MANEB contract differs.
+      const result = await contract.sendTransaction('maneb', 'setFormFourDetailsBatch', [
+        studentNames.map((n) => String(n).trim()),
+        examinationNumbers.map((n) => String(n).trim()),
+        schoolName.trim(),
+        yearOfExamination
+      ], {
+        gas: 2000000,
+        gasPrice: '20000000000'
+      });
+
+      console.log('✅ Form four details batch added:', result.transactionHash);
       return result;
     } catch (error) {
       console.error('❌ Error adding form four details batch:', error);
@@ -1262,6 +1654,7 @@ export const useManebContract = () => {
     getStudentDetailsByExamAndYear,
     getFormHashByExamAndYear,
     getStudentDetailsByHashValue,
+    addVerificationCheck,
     addVerificationRequest
   };
 };

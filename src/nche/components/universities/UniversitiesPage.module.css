@@ -1,4 +1,6 @@
-/* Layout */
+/* ==========================================================
+   Layout
+   ========================================================== */
 .container {
   display: flex;
   flex-direction: column;
@@ -12,7 +14,9 @@
   justify-content: flex-end;
 }
 
-/* Buttons */
+/* ==========================================================
+   Buttons
+   ========================================================== */
 .btnPrimary, .btnGhost {
   padding: 10px 18px;
   border-radius: 6px;
@@ -39,7 +43,9 @@
 .btnGhost:hover:not(:disabled) { background: var(--hover); color: var(--text); }
 .btnGhost:disabled { opacity: .6; cursor: not-allowed; }
 
-/* Alert */
+/* ==========================================================
+   Alert
+   ========================================================== */
 .alert {
   display: flex;
   align-items: center;
@@ -56,7 +62,9 @@
 .alertIcon { display: flex; flex-shrink: 0; }
 .alertBody { flex: 1; line-height: 1.5; color: var(--text); }
 
-/* Card / Table Section */
+/* ==========================================================
+   Card / Table Section
+   ========================================================== */
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -88,7 +96,9 @@
   color: var(--text);
 }
 
-/* Table */
+/* ==========================================================
+   Table
+   ========================================================== */
 .tableWrap { overflow-x: auto; margin: 0 -4px; }
 .table { width: 100%; border-collapse: collapse; font-size: .95rem; }
 .table thead tr { text-align: left; color: var(--text-muted); font-size: .8rem; letter-spacing: .03em; text-transform: uppercase; }
@@ -104,35 +114,139 @@
   gap: 8px;
 }
 
-/* Programs Sub-Table */
-.programsRow td {
-  padding: 0 !important;
-  border-top: none !important;
+/* ==========================================================
+   Status badges
+   ========================================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
-.programsWrapper {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 20px;
-  margin: 8px 0 16px;
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
-.programsHeader {
+.badgeActive {
+  background: rgba(22, 163, 74, 0.12);
+  color: #16a34a;
+}
+
+.badgeSuspended {
+  background: rgba(220, 38, 38, 0.12);
+  color: #dc2626;
+}
+
+/* ==========================================================
+   Programs popup (opens when "View Programs" is clicked)
+   ========================================================== */
+.programsModal {
+  width: 100%;
+  max-width: 820px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: 16px;
+  border-top: 4px solid var(--accent);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.25), 0 0 0 1px var(--border);
+  overflow: hidden;
+  animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.programsModalHeader {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--border);
 }
 
-.programsHeader h3 {
-  font-size: 1rem;
+.programsModalTitle {
+  margin: 0 0 8px;
+  font-size: 1.3rem;
   font-weight: 600;
+  line-height: 1.25;
   color: var(--text);
-  margin: 0;
 }
 
-/* Modern Overlay Forms */
+.programsModalMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: .9rem;
+  color: var(--text-muted);
+}
+
+.programsCount {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: .78rem;
+  font-weight: 600;
+}
+
+.programsModalBody {
+  flex: 1;
+  overflow: auto;
+  padding: 8px 28px 16px;
+}
+
+.programsModalBody .table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  padding: 14px 12px 10px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: .82rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.programsModalBody .table td {
+  padding: 14px 12px;
+}
+
+.programsModalBody .table tbody tr:first-child {
+  border-top: none;
+}
+
+.programsModalBody .table tbody td:first-child {
+  font-weight: 500;
+}
+
+.programsModalBody .emptyState {
+  margin-top: 16px;
+}
+
+.programsModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 28px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+/* ==========================================================
+   Modal overlay
+   ========================================================== */
 .overlayBackdrop {
   position: fixed;
   inset: 0;
@@ -147,7 +261,7 @@
 
 .formOverlay {
   width: 100%;
-  max-width: 680px; /* Wider, more flexible */
+  max-width: 680px;
   background: var(--surface);
   border-radius: 16px;
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.2), 0 0 0 1px var(--border);
@@ -190,7 +304,9 @@
 }
 .closeBtn:hover { background: var(--hover); color: var(--text); }
 
-/* Form Body & Grid */
+/* ==========================================================
+   Form body & grid
+   ========================================================== */
 .form {
   display: flex;
   flex-direction: column;
@@ -214,10 +330,10 @@
   grid-column: 1 / -1;
 }
 
-/* Modern Floating Labels */
+/* Floating labels */
 .formGroup input,
 .formGroup select {
-  padding: 24px 16px 8px 16px; /* Room for floating label */
+  padding: 24px 16px 8px 16px;
   border: 1px solid var(--border);
   border-radius: 8px;
   font-size: .95rem;
@@ -244,11 +360,12 @@
   margin: 0;
 }
 
-/* Float label up when input is focused or has value */
+/* Float label up when input is focused or has a value.
+   Selects use :valid because the empty option is disabled + hidden. */
 .formGroup input:focus ~ label,
 .formGroup input:not(:placeholder-shown) ~ label,
 .formGroup select:focus ~ label,
-.formGroup select:not([value=""]):valid ~ label {
+.formGroup select:valid ~ label {
   top: 6px;
   font-size: .72rem;
   font-weight: 500;
@@ -277,7 +394,7 @@
   padding-right: 40px;
 }
 
-/* Modal Footer */
+/* Modal footer */
 .formActions {
   display: flex;
   gap: 12px;
@@ -292,7 +409,9 @@
   min-width: 120px;
 }
 
-/* Empty / Loading State */
+/* ==========================================================
+   Empty / loading states
+   ========================================================== */
 .emptyState {
   text-align: center;
   padding: 60px 20px;
@@ -325,7 +444,9 @@
   color: var(--text-muted);
 }
 
-/* Responsive */
+/* ==========================================================
+   Responsive
+   ========================================================== */
 @media (max-width: 768px) {
   .headerActions {
     flex-direction: column;
@@ -350,5 +471,26 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 16px;
+  }
+  .programsModalHeader,
+  .programsModalFooter {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .programsModalBody {
+    padding: 8px 12px 16px;
+  }
+  .programsModalFooter {
+    flex-direction: column-reverse;
+  }
+  .programsModalFooter button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .programsModal,
+  .formOverlay {
+    animation: none;
   }
 }
